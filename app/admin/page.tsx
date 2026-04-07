@@ -25,8 +25,8 @@ export default async function AdminPage() {
             <Link href="/dashboard" className="text-emerald-600 hover:underline text-sm font-medium">
               Vedi Grafici Pubblici
             </Link>
-            {/* Sostituita la prop obsoleta con fallbackRedirectUrl */}
-            <UserButton fallbackRedirectUrl="/" />
+            {/* ECCO LA SOLUZIONE: Solo UserButton puro senza prop! */}
+            <UserButton />
           </div>
         </div>
 
