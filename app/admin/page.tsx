@@ -25,12 +25,12 @@ export default async function AdminPage() {
             <Link href="/dashboard" className="text-emerald-600 hover:underline text-sm font-medium">
               Vedi Grafici Pubblici
             </Link>
-            {/* ECCO LA SOLUZIONE: Solo UserButton puro senza prop! */}
             <UserButton />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* ... TUTTO IL RESTO DEL TUO CODICE (il form e la tabella con la bind) ... */}
           <div className="md:col-span-1">
             <div className="bg-white/80 backdrop-blur-2xl border border-white/80 shadow-lg rounded-3xl p-6">
               <h2 className="text-xl font-bold mb-4 text-emerald-800">Nuova Misurazione</h2>
@@ -96,6 +96,8 @@ export default async function AdminPage() {
               </div>
             </div>
           </div>
+          {/* ... FINE TABELLA ... */}
+
         </div>
       </div>
     </main>
