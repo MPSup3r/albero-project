@@ -1,10 +1,10 @@
 "use client";
 
-import { FormEvent, KeyboardEvent, useState } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 function BasicTree() {
   return (
@@ -25,10 +25,35 @@ function BasicTree() {
 
 export default function Home() {
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isLauncherHovered, setIsLauncherHovered] = useState(false);
+  const [showHintBubble, setShowHintBubble] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Timer in millisecondi per far comparire il messaggio automatico.
+  const HINT_TIMER_MS = 10000;
+  const HINT_DURATION_MS = 3200;
+
+  // Grandezza responsive del logo: cresce su monitor grandi e si riduce su mobile.
+  const TREE_LOGO_SIZE = "clamp(88px, 14vw, 220px)";
+
+  // Distanza responsive dai bordi per evitare che copra contenuti su schermi piccoli.
+  const LAUNCHER_INSET = "clamp(10px, 2.2vw, 28px)";
+
+  // Distanza verticale responsive tra albero e nuvoletta suggerimento.
+  const HINT_BUBBLE_GAP = "clamp(0px, -1vw, 22px)";
+
   const BACKEND_URL = "https://treesitetorricellirelay.onrender.com/api/chat";
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setShowHintBubble(true);
+      setTimeout(() => setShowHintBubble(false), HINT_DURATION_MS);
+    }, HINT_TIMER_MS);
+
+    return () => clearInterval(intervalId);
+  }, [HINT_DURATION_MS, HINT_TIMER_MS]);
 
   async function sendPrompt() {
     const trimmedPrompt = prompt.trim();
@@ -232,7 +257,7 @@ export default function Home() {
 
       </div>
 
-      <div className="fixed bottom-5 right-5 md:bottom-7 md:right-7 z-50">
+      <div className="fixed z-50" style={{ bottom: LAUNCHER_INSET, right: LAUNCHER_INSET }}>
         {isChatOpen ? (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.96 }}
@@ -256,7 +281,7 @@ export default function Home() {
                 value={prompt}
                 onChange={(event) => setPrompt(event.target.value)}
                 onKeyDown={handlePromptKeyDown}
-                rows={4}
+                rows={5}
                 placeholder="Scrivi qui il tuo messaggio..."
                 className="w-full resize-none rounded-2xl border border-emerald-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-emerald-400"
               />
@@ -269,24 +294,48 @@ export default function Home() {
               </button>
             </form>
 
-            <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-3 text-sm text-slate-700 min-h-[92px] max-h-[220px] overflow-y-auto whitespace-pre-wrap">
+            <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-3 text-sm text-slate-700 min-h-[120px] max-h-[280px] overflow-y-auto whitespace-pre-wrap">
               {response || "Ti ascolto! Premi Ctrl+Invio per inviare velocemente."}
             </div>
           </motion.div>
         ) : (
-          <motion.button
-            type="button"
-            onClick={() => setIsChatOpen(true)}
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
-            className="group relative h-16 w-16 rounded-full bg-gradient-to-br from-emerald-400 to-green-600 text-white shadow-[0_10px_30px_rgba(16,185,129,0.45)] hover:scale-105 active:scale-95 transition-transform"
-            aria-label="Apri chat con Vito AI"
-          >
-            <span className="absolute inset-0 rounded-full ring-2 ring-white/60" />
-            <span className="relative flex h-full w-full items-center justify-center text-3xl">🌳</span>
-            <span className="absolute -top-2 -right-2 text-lg">🙂</span>
-          </motion.button>
+          <div className="relative">
+            <AnimatePresence>
+              {(isLauncherHovered || showHintBubble) && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8, y: 12 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 8 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                  className="pointer-events-none absolute right-0 rounded-2xl border border-emerald-200 bg-white/95 px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-semibold text-emerald-900 shadow-[0_14px_35px_rgba(16,185,129,0.24)] whitespace-nowrap"
+                  style={{ bottom: `calc(100% + ${HINT_BUBBLE_GAP})` }}
+                >
+                  Se hai domande chiedi pure a me
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.button
+              type="button"
+              onClick={() => setIsChatOpen(true)}
+              onHoverStart={() => setIsLauncherHovered(true)}
+              onHoverEnd={() => setIsLauncherHovered(false)}
+              onFocus={() => setIsLauncherHovered(true)}
+              onBlur={() => setIsLauncherHovered(false)}
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+              className="group relative bg-transparent hover:scale-105 active:scale-95 transition-transform"
+              style={{ width: TREE_LOGO_SIZE, height: TREE_LOGO_SIZE }}
+              aria-label="Apri chat con Vito AI"
+            >
+              <img
+                src="/logo_vivo.png"
+                alt="Logo Vivo"
+                className="h-full w-full object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.28)]"
+              />
+            </motion.button>
+          </div>
         )}
       </div>
     </main>
