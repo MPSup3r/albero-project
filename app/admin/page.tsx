@@ -1,8 +1,9 @@
+// app/admin/page.tsx
 import { neon } from '@neondatabase/serverless';
 import { addMeasurement, deleteMeasurement } from '../actions';
-import { UserButton } from "@clerk/nextjs";
 import Link from 'next/link';
 
+// Recuperiamo i dati esistenti dal DB
 async function getMeasurements() {
   if (!process.env.DATABASE_URL) return [];
   const sql = neon(process.env.DATABASE_URL);
@@ -16,6 +17,7 @@ export default async function AdminPage() {
     <main className="min-h-screen bg-[#F9FAFB] p-6 md:p-12 font-sans text-slate-800">
       <div className="max-w-4xl mx-auto">
         
+        {/* Intestazione Admin */}
         <div className="flex justify-between items-center mb-10 bg-white/60 backdrop-blur-xl border border-white/80 p-6 rounded-3xl shadow-sm">
           <div>
             <h1 className="text-3xl font-bold text-emerald-900">Pannello di Controllo</h1>
@@ -25,15 +27,18 @@ export default async function AdminPage() {
             <Link href="/dashboard" className="text-emerald-600 hover:underline text-sm font-medium">
               Vedi Grafici Pubblici
             </Link>
-            <UserButton />
+            {/* L'UserButton è stato rimosso da qui */}
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* ... TUTTO IL RESTO DEL TUO CODICE (il form e la tabella con la bind) ... */}
+          
+          {/* Colonna Form (Inserimento Dati) */}
           <div className="md:col-span-1">
             <div className="bg-white/80 backdrop-blur-2xl border border-white/80 shadow-lg rounded-3xl p-6">
               <h2 className="text-xl font-bold mb-4 text-emerald-800">Nuova Misurazione</h2>
+              
+              {/* Il form chiama la Server Action "addMeasurement" */}
               <form action={addMeasurement} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Data</label>
@@ -54,9 +59,11 @@ export default async function AdminPage() {
             </div>
           </div>
 
+          {/* Colonna Tabella (Storico Dati) */}
           <div className="md:col-span-2">
             <div className="bg-white/80 backdrop-blur-2xl border border-white/80 shadow-lg rounded-3xl p-6 overflow-hidden">
               <h2 className="text-xl font-bold mb-4 text-emerald-800">Storico Misurazioni</h2>
+              
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -96,7 +103,6 @@ export default async function AdminPage() {
               </div>
             </div>
           </div>
-          {/* ... FINE TABELLA ... */}
 
         </div>
       </div>
