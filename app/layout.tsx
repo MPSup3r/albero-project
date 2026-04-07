@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ChatWidget from "@/components/ChatWidget"; // <-- Importa il componente
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,9 +29,6 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col relative">
         {children}
-        
-        {/* <-- Aggiungi il Widget della Chat qui */}
-        <ChatWidget /> 
       </body>
     </html>
   );
