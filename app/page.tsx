@@ -1,5 +1,6 @@
 "use client";
 
+import { FormEvent, KeyboardEvent, useState } from "react";
 import Link from "next/link";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
@@ -23,6 +24,58 @@ function BasicTree() {
 }
 
 export default function Home() {
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [prompt, setPrompt] = useState("");
+  const [response, setResponse] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const BACKEND_URL = "https://treesitetorricellirelay.onrender.com/api/chat";
+
+  async function sendPrompt() {
+    const trimmedPrompt = prompt.trim();
+    if (!trimmedPrompt || isLoading) {
+      if (!trimmedPrompt) {
+        setResponse("Scrivi qualcosa prima di inviare.");
+      }
+      return;
+    }
+
+    setIsLoading(true);
+    setResponse("Sto pensando...");
+
+    try {
+      const res = await fetch(BACKEND_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: trimmedPrompt }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setResponse("Errore dal server: " + (err.detail || res.status));
+        return;
+      }
+
+      const data = await res.json();
+      setResponse(data.response || "(nessuna risposta)");
+    } catch (e) {
+      setResponse("Errore di rete: " + String(e));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void sendPrompt();
+  }
+
+  function handlePromptKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      void sendPrompt();
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#F9FAFB] relative overflow-hidden font-sans text-slate-800">
       
@@ -177,6 +230,64 @@ export default function Home() {
           </div>
         </motion.section>
 
+      </div>
+
+      <div className="fixed bottom-5 right-5 md:bottom-7 md:right-7 z-50">
+        {isChatOpen ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="w-[320px] max-w-[calc(100vw-2.5rem)] bg-white/95 backdrop-blur-xl border border-emerald-200 shadow-[0_18px_50px_rgba(16,185,129,0.25)] rounded-3xl p-4"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-bold text-emerald-900">Parla con Vito AI</p>
+              <button
+                type="button"
+                onClick={() => setIsChatOpen(false)}
+                className="text-sm text-emerald-700 hover:text-emerald-900 font-semibold"
+              >
+                Chiudi
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <textarea
+                value={prompt}
+                onChange={(event) => setPrompt(event.target.value)}
+                onKeyDown={handlePromptKeyDown}
+                rows={4}
+                placeholder="Scrivi qui il tuo messaggio..."
+                className="w-full resize-none rounded-2xl border border-emerald-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-emerald-400"
+              />
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full rounded-2xl bg-emerald-600 text-white font-semibold py-2.5 hover:bg-emerald-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isLoading ? "Invio in corso..." : "Invia"}
+              </button>
+            </form>
+
+            <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-3 text-sm text-slate-700 min-h-[92px] max-h-[220px] overflow-y-auto whitespace-pre-wrap">
+              {response || "Ti ascolto! Premi Ctrl+Invio per inviare velocemente."}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.button
+            type="button"
+            onClick={() => setIsChatOpen(true)}
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="group relative h-16 w-16 rounded-full bg-gradient-to-br from-emerald-400 to-green-600 text-white shadow-[0_10px_30px_rgba(16,185,129,0.45)] hover:scale-105 active:scale-95 transition-transform"
+            aria-label="Apri chat con Vito AI"
+          >
+            <span className="absolute inset-0 rounded-full ring-2 ring-white/60" />
+            <span className="relative flex h-full w-full items-center justify-center text-3xl">🌳</span>
+            <span className="absolute -top-2 -right-2 text-lg">🙂</span>
+          </motion.button>
+        )}
       </div>
     </main>
   );
