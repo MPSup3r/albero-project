@@ -1,13 +1,11 @@
 import { neon } from '@neondatabase/serverless';
-import { addMeasurement, deleteMeasurement } from '../actions';
+import { addMeasurement, deleteMeasurement, addImage, deleteImage, getImages } from '../actions';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
-// Funzione Server Action di Logout
 async function handleLogout() {
   "use server";
-  // FIX: Ora usiamo await cookies()
   const cookieStore = await cookies();
   cookieStore.delete("vito_auth");
   redirect("/login");
@@ -21,21 +19,21 @@ async function getMeasurements() {
 
 export default async function AdminPage() {
   const measurements = await getMeasurements();
+  const images = await getImages();
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] p-6 md:p-12 font-sans text-slate-800">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         
+        {/* HEADER */}
         <div className="flex justify-between items-center mb-10 bg-white/60 backdrop-blur-xl border border-white/80 p-6 rounded-3xl shadow-sm">
           <div>
             <h1 className="text-3xl font-bold text-emerald-900">Pannello di Controllo</h1>
-            <p className="text-slate-500">Gestisci i dati di crescita di Vito</p>
+            <p className="text-slate-500">Gestisci i dati e le foto di Vito</p>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-emerald-600 hover:underline text-sm font-medium">
-              Vedi Grafici Pubblici
-            </Link>
-            
+            <Link href="/" className="text-emerald-600 hover:underline text-sm font-medium">Torna al Sito</Link>
+            <Link href="/dashboard" className="text-emerald-600 hover:underline text-sm font-medium">Vedi Grafici Pubblici</Link>
             <form action={handleLogout}>
               <button type="submit" className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors">
                 Esci 👋
@@ -44,7 +42,8 @@ export default async function AdminPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* SEZIONE MISURAZIONI (Tuo Layout Originale) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <div className="md:col-span-1">
             <div className="bg-white/80 backdrop-blur-2xl border border-white/80 shadow-lg rounded-3xl p-6">
               <h2 className="text-xl font-bold mb-4 text-emerald-800">Nuova Misurazione</h2>
@@ -96,9 +95,7 @@ export default async function AdminPage() {
                             <td className="py-3 text-slate-700">{m.circumference_cm} cm</td>
                             <td className="py-3 text-right">
                               <form action={deleteWithId}>
-                                <button type="submit" className="text-red-500 hover:text-red-700 text-sm font-medium px-3 py-1 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
-                                  Elimina
-                                </button>
+                                <button type="submit" className="text-red-500 hover:text-red-700 text-sm font-medium px-3 py-1 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">Elimina</button>
                               </form>
                             </td>
                           </tr>
@@ -111,6 +108,60 @@ export default async function AdminPage() {
             </div>
           </div>
         </div>
+
+        {/* SEZIONE GESTIONE IMMAGINI */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-1">
+            <div className="bg-white/80 backdrop-blur-2xl border border-white/80 shadow-lg rounded-3xl p-6">
+              <h2 className="text-xl font-bold mb-4 text-emerald-800">Aggiungi Foto</h2>
+              <form action={addImage} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Seleziona Foto (dal PC o Telefono)
+                  </label>
+                  {/* Questo input permette di cliccare o trascinare i file */}
+                  <input 
+                    type="file" 
+                    name="image" 
+                    accept="image/*" 
+                    required 
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2 bg-white/50 focus:outline-none focus:ring-2 focus:ring-emerald-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Didascalia</label>
+                  <input type="text" name="caption" placeholder="Es: Vito con la prima foglia!" className="w-full border border-slate-200 rounded-xl px-4 py-2 bg-white/50 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                </div>
+                <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-all shadow-md">
+                  Carica Foto 📸
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div className="md:col-span-2">
+            <div className="bg-white/80 backdrop-blur-2xl border border-white/80 shadow-lg rounded-3xl p-6 overflow-hidden">
+              <h2 className="text-xl font-bold mb-4 text-emerald-800">Galleria Attuale</h2>
+              {images.length === 0 ? (
+                <p className="py-6 text-center text-slate-400">Nessuna foto caricata.</p>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {images.map((img: any) => (
+                    <div key={img.id} className="relative group rounded-2xl overflow-hidden border border-slate-200">
+                      <img src={img.url} alt={img.caption} className="w-full h-32 object-cover" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <form action={deleteImage.bind(null, img.id)}>
+                          <button type="submit" className="bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-bold">Elimina</button>
+                        </form>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
       </div>
     </main>
   );
