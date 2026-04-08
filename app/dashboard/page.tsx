@@ -10,6 +10,10 @@ async function getData() {
   
   return data.map((row: any) => ({
     ...row,
+    // CONVERTI IN NUMERO QUI 👇
+    height_cm: Number(row.height_cm),
+    circumference_cm: Number(row.circumference_cm),
+    // ----------------------
     date: new Date(row.date).toLocaleDateString('it-IT')
   }));
 }

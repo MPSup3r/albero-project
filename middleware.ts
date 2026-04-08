@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// FIX: Aggiunto "default" a questa esportazione
 export default function middleware(request: NextRequest) {
   const isAuthenticated = request.cookies.get('vito_auth')?.value === 'true';
 
