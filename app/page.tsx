@@ -470,4 +470,60 @@ export default function Home() {
 
       {/* Lightbox fullscreen */}
       <AnimatePresence>
-        {selectedImageIndex !== null && images[selectedImageIndex
+        {selectedImageIndex !== null && images[selectedImageIndex] && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 md:p-8"
+            onClick={() => setSelectedImageIndex(null)}
+          >
+            <button
+              className="absolute top-6 right-6 text-white text-4xl hover:text-emerald-400 transition-colors z-[60]"
+              onClick={() => setSelectedImageIndex(null)}
+            >
+              &times;
+            </button>
+
+            {images.length > 1 && (
+              <button
+                className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 text-white text-4xl md:text-6xl hover:text-emerald-400 transition-colors z-[60] p-4"
+                onClick={showPrevImage}
+              >
+                &#10094;
+              </button>
+            )}
+
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="relative max-w-full max-h-full flex flex-col items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={images[selectedImageIndex].url}
+                alt={images[selectedImageIndex].caption || "Immagine fullscreen"}
+                className="max-w-[90vw] max-h-[80vh] object-contain rounded-xl shadow-2xl"
+              />
+              {images[selectedImageIndex].caption && (
+                <p className="text-white mt-6 text-xl font-medium italic text-center drop-shadow-lg">
+                  &quot;{images[selectedImageIndex].caption}&quot;
+                </p>
+              )}
+            </motion.div>
+
+            {images.length > 1 && (
+              <button
+                className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 text-white text-4xl md:text-6xl hover:text-emerald-400 transition-colors z-[60] p-4"
+                onClick={showNextImage}
+              >
+                &#10095;
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </main>
+  );
+}
