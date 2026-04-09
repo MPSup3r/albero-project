@@ -49,24 +49,42 @@ export default function Home() {
   const BACKEND_URL = "https://treesitetorricellirelay.onrender.com/api/chat";
 
   useEffect(() => {
-    getImages()
-      .then((data) => setImages(data ?? []))
-      .catch(console.error);
+  getImages()
+    .then((data) => {
+      const normalized: GalleryImage[] = Array.isArray(data)
+        ? data
+            .filter(
+              (item): item is Record<string, unknown> =>
+                typeof item === "object" && item !== null
+            )
+            .map((item, index) => ({
+              id:
+                typeof item.id === "string" || typeof item.id === "number"
+                  ? item.id
+                  : index,
+              url: typeof item.url === "string" ? item.url : "",
+              caption:
+                typeof item.caption === "string" ? item.caption : undefined,
+            }))
+            .filter((item) => item.url.length > 0)
+        : [];
 
-    const intervalId = setInterval(() => {
-      if (!isChatOpen) {
-        setShowHintBubble(true);
+      setImages(normalized);
+    })
+    .catch(console.error);
 
-        const timeoutId = setTimeout(() => {
-          setShowHintBubble(false);
-        }, HINT_DURATION_MS);
+  const intervalId = setInterval(() => {
+    if (!isChatOpen) {
+      setShowHintBubble(true);
 
-        return () => clearTimeout(timeoutId);
-      }
-    }, HINT_TIMER_MS);
+      setTimeout(() => {
+        setShowHintBubble(false);
+      }, HINT_DURATION_MS);
+    }
+  }, HINT_TIMER_MS);
 
-    return () => clearInterval(intervalId);
-  }, [HINT_DURATION_MS, HINT_TIMER_MS, isChatOpen]);
+  return () => clearInterval(intervalId);
+}, [HINT_DURATION_MS, HINT_TIMER_MS, isChatOpen]);
 
   const handleOpenChat = () => {
     setIsChatOpen(true);
