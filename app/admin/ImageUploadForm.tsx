@@ -46,7 +46,7 @@ export default function ImageUploadForm() {
       </div>
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Didascalia</label>
-        <input type="text" name="caption" placeholder="Es: Vito con la prima foglia!" className="w-full border border-slate-200 rounded-xl px-4 py-2 bg-white/50 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        <input type="text" name="caption" placeholder="Es: Vivo con la prima foglia!" className="w-full border border-slate-200 rounded-xl px-4 py-2 bg-white/50 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
       </div>
       
       {/* Mostra l'errore se presente */}
