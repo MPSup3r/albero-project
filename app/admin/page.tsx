@@ -34,7 +34,7 @@ export default async function AdminPage() {
         <div className="flex justify-between items-center mb-10 bg-white/60 backdrop-blur-xl border border-white/80 p-6 rounded-3xl shadow-sm">
           <div>
             <h1 className="text-3xl font-bold text-emerald-900">Pannello di Controllo</h1>
-            <p className="text-slate-500">Gestisci i dati e le foto di Vito</p>
+            <p className="text-slate-500">Gestisci i dati e le foto di Vivo</p>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/" className="text-emerald-600 hover:underline text-sm font-medium">Vai al Sito</Link>
