@@ -2,8 +2,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Vito Tree - Monitoraggio Crescita",
-  description: "Pannello di controllo per le misurazioni di Vito",
+  title: "Vivo Tree - Monitoraggio Crescita",
+  description: "Pannello di controllo per le misurazioni di Vivo",
 };
 
 export default function RootLayout({
