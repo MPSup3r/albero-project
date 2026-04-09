@@ -326,7 +326,7 @@ export default function Home() {
                 Usando pale e una trivella, abbiamo scavato le buche, inserito gli
                 alberi, recintati e riempiti alla base con cocci di vaso. Infine,
                 abbiamo affondato nel terreno una <strong>matita di legno gigante</strong>{" "}
-                per identificare Vito come l&apos;albero ufficiale della nostra 4B!
+                per identificare Vivo come l&apos;albero ufficiale della nostra 4B!
               </p>
             </div>
           </div>
@@ -395,7 +395,7 @@ export default function Home() {
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base sm:text-lg font-bold text-emerald-900">
-                    Chat con Vito
+                    Chat con Vivo
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-500">
                     Fai una domanda sull&apos;albero o sul progetto
@@ -471,7 +471,7 @@ export default function Home() {
                 onBlur={() => setIsLauncherHovered(false)}
                 className="group relative bg-transparent hover:scale-110 active:scale-95 transition-transform"
                 style={{ width: TREE_LOGO_SIZE, height: TREE_LOGO_SIZE }}
-                aria-label="Apri chat con Vito AI"
+                aria-label="Apri chat con Vivo AI"
               >
                 <div className="w-full h-full bg-emerald-500 rounded-full shadow-[0_8px_25px_rgba(16,185,129,0.4)] border-[3px] border-white overflow-hidden flex items-center justify-center">
                   <img
