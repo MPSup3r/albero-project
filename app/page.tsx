@@ -34,6 +34,7 @@ export default function Home() {
   const [showHintBubble, setShowHintBubble] = useState(false);
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
   const [measurements, setMeasurements] = useState<any[]>([]);
 
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -91,6 +92,23 @@ export default function Home() {
 
   return () => clearInterval(intervalId);
 }, [HINT_DURATION_MS, HINT_TIMER_MS, isChatOpen]);
+
+// Carousel Auto-play logic
+useEffect(() => {
+  if (images.length === 0) return;
+  const carouselInterval = setInterval(() => {
+    setCurrentCarouselIndex((prev) => (prev + 1) % images.length);
+  }, 4000);
+  return () => clearInterval(carouselInterval);
+}, [images.length]);
+
+const nextCarouselImage = () => {
+  setCurrentCarouselIndex((prev) => (prev + 1) % images.length);
+};
+
+const prevCarouselImage = () => {
+  setCurrentCarouselIndex((prev) => (prev - 1 + images.length) % images.length);
+};
 
   const handleOpenChat = () => {
     setIsChatOpen(true);
@@ -167,123 +185,87 @@ export default function Home() {
     }
   }
 
-  const heroRef = useRef<HTMLElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
-    offset: ["start start", "end start"],
+    offset: ["start start", "end end"],
   });
-  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "45%"]);
-  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.85]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  
+  // Exergy3-style gentle zoom in the background without side-to-side jerks
+  const treeScale = useTransform(scrollYProgress, [0, 1], [1, 1.4]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
 
-  // Aggressive stagger animation variants
+  // Gentle fade up from the void
+  const popInItem = {
+    hidden: { opacity: 0, y: 80 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 1.2,
+        ease: [0.16, 1, 0.3, 1] as any,
+      },
+    },
+  };
+
   const staggerContainer = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
-  const popInItem = {
-    hidden: { opacity: 0, y: 50, scale: 0.9, filter: "blur(12px)" },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      filter: "blur(0px)",
-      transition: {
-        duration: 0.8,
-        ease: [0.16, 1, 0.3, 1] as any, // Very snappy spring-like ease
-      },
+      transition: { staggerChildren: 0.2 },
     },
   };
 
   return (
-    <main className="min-h-screen bg-[#F9FAFB] relative overflow-hidden font-sans text-slate-800">
-      {/* Sfondi decorativi animati */}
-      <motion.div
-        animate={{
-          x: [0, 30, -20, 0],
-          y: [0, -40, 20, 0],
-          scale: [1, 1.1, 0.95, 1],
-        }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-200/50 rounded-full blur-[100px] pointer-events-none"
-      />
-      <motion.div
-        animate={{
-          x: [0, -25, 35, 0],
-          y: [0, 30, -25, 0],
-          scale: [1, 0.9, 1.05, 1],
-        }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-        className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-green-100/60 rounded-full blur-[100px] pointer-events-none"
-      />
-      <motion.div
-        animate={{
-          x: [0, 40, -30, 0],
-          y: [0, -20, 40, 0],
-          scale: [1, 1.08, 0.92, 1],
-        }}
-        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-        className="absolute bottom-[-10%] left-[10%] w-[600px] h-[600px] bg-emerald-100/40 rounded-full blur-[120px] pointer-events-none"
-      />
+    <main className="min-h-[500vh] bg-[#FCFDFD] relative overflow-hidden font-sans text-slate-800">
+      {/* Decals and environmental lighting for Solarpunk feel */}
+      <div className="absolute top-0 left-0 w-full h-[150vh] bg-gradient-to-b from-emerald-50/50 to-transparent pointer-events-none z-0" />
+      <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-emerald-100/30 rounded-full blur-[100px] pointer-events-none z-0" />
 
       {/* Hero Section */}
-      <header ref={heroRef} className="max-w-5xl mx-auto mb-16 relative pt-10">
-        <motion.div
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
-          style={{ y: heroY, scale: heroScale }}
-          className="absolute inset-0 z-0 h-[500px] md:h-[600px] w-full pointer-events-auto cursor-grab active:cursor-grabbing"
-        >
-          <Canvas camera={{ position: [0, 2, 12], fov: 45 }}>
-            <ambientLight intensity={0.7} />
-            <directionalLight position={[10, 10, 10]} intensity={1.5} />
-            <Environment preset="city" />
-            <BasicTree />
-            <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={1.5} />
-          </Canvas>
-        </motion.div>
-
-        <motion.div
-          style={{ opacity: heroOpacity }}
-          className="relative z-10 text-center mt-8 h-[500px] md:h-[600px] flex flex-col items-center justify-center pointer-events-none"
-        >
+      <header className="max-w-7xl mx-auto mb-40 relative pt-32 px-6">
+        <div className="relative z-10 flex flex-col justify-center h-[500px] pointer-events-none items-center text-center">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }} className="mb-6">
+            <span className="font-mono text-emerald-500 text-sm tracking-widest border border-emerald-200/50 bg-white/50 px-3 py-1 rounded-full uppercase shadow-sm">
+              [ PROGETTO BOTANICO VIVO ]
+            </span>
+          </motion.div>
+          
           <motion.h1
-            initial={{ opacity: 0, y: 60, filter: "blur(20px)" }}
+            initial={{ opacity: 0, y: 40, filter: "blur(12px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 1.2, delay: 0.2, ease: [0.25, 0.4, 0.25, 1] }}
-            className="text-7xl md:text-9xl font-extrabold tracking-tight mb-4 text-emerald-900 drop-shadow-sm"
+            className="text-7xl md:text-[12rem] tracking-tighter font-extrabold mb-4 text-slate-900 drop-shadow-sm"
           >
-            Vivo
+            VIVO
           </motion.h1>
 
           <motion.div
-            initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 0.8, delay: 0.6, ease: [0.25, 0.4, 0.25, 1] }}
-            className="bg-white/50 backdrop-blur-md border border-white/60 shadow-sm px-6 py-2 rounded-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.8 }}
           >
-            <p className="text-xl md:text-2xl font-medium text-emerald-800 tracking-wide">
-              Il nostro Pioppo Bianco
+            <p className="text-xl md:text-2xl font-medium text-emerald-600 tracking-widest uppercase">
+              Urban Thermal & Carbon Sink
             </p>
           </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scaleX: 0 }}
-            animate={{ opacity: 1, scaleX: 1 }}
-            transition={{ duration: 1, delay: 1, ease: [0.25, 0.4, 0.25, 1] }}
-            className="mt-8 h-[1px] w-32 bg-gradient-to-r from-transparent via-emerald-400 to-transparent"
-          />
-        </motion.div>
-
+        </div>
       </header>
+
+      {/* Static background container for the tree */}
+      <div className="absolute top-0 left-0 w-full h-[150vh] pointer-events-none z-0" />
+      
+      <div
+        className="absolute top-0 inset-x-0 h-[80vh] md:h-[100vh] z-0 pointer-events-auto cursor-grab active:cursor-grabbing opacity-100 mix-blend-multiply flex items-center justify-center mask-image-[linear-gradient(to_bottom,black_40%,transparent)]"
+      >
+        <Canvas camera={{ position: [0, 2, 12], fov: 45 }}>
+          <ambientLight intensity={0.7} />
+          <directionalLight position={[10, 10, 10]} intensity={1.5} />
+          <Environment preset="city" />
+          <BasicTree />
+          <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={2.5} />
+        </Canvas>
+      </div>
 
       {/* Quadro Generale del Progetto */}
       <motion.section
@@ -291,111 +273,80 @@ export default function Home() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
-        className="max-w-5xl mx-auto px-6 relative z-10 cursor-default mb-8"
+        className="max-w-7xl mx-auto px-6 relative z-10 mb-60 mt-[20vh]"
       >
-        <motion.div 
-          variants={popInItem}
-          className="bg-white/60 backdrop-blur-2xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-8 md:p-12 transition-all duration-300 hover:bg-white/80 hover:border-emerald-400 hover:shadow-2xl hover:shadow-emerald-900/10"
-        >
-          <motion.h2 variants={popInItem} className="text-3xl font-bold mb-8 text-center text-emerald-900">
-            Il Progetto &quot;Vivo&quot; 🌱
-          </motion.h2>
-          <motion.p variants={popInItem} className="text-slate-600 leading-relaxed font-medium text-center max-w-3xl mx-auto mb-6">
-            Il progetto &quot;Vivo&quot; rappresenta l&apos;impegno concreto della classe 4B Informatica
-            dell&apos;I.T. Evangelista Torricelli nell&apos;ambito dell&apos;iniziativa ambientale{" "}
-            <strong className="text-emerald-800">Green School – &quot;Coloriamo di Verde&quot;</strong>.
-          </motion.p>
-          <motion.p variants={popInItem} className="text-slate-600 leading-relaxed text-center max-w-3xl mx-auto mb-8">
-            L&apos;obiettivo primario è la riqualificazione arborea dell&apos;area di via Ulisse Dini a Milano,
-            attraverso la messa a dimora e il monitoraggio costante di un esemplare di Pioppo Bianco
-            (<em>Populus alba</em>). L&apos;intervento si configura come un laboratorio scientifico a cielo 
-            aperto per lo studio della crescita vegetativa in ambiente urbano.
-          </motion.p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <motion.div variants={popInItem} className="flex gap-3 items-start bg-white/50 p-4 rounded-xl border border-white/50 shadow-sm hover:-translate-y-1 transition-transform">
-              <span className="text-2xl mt-0.5">🌿</span>
-              <div>
-                <strong className="text-emerald-800">Portiamo il verde in classe</strong>
-                <p className="text-sm text-slate-600 mt-1">Prima fase curata dal primo biennio.</p>
-              </div>
-            </motion.div>
-            <motion.div variants={popInItem} className="flex gap-3 items-start bg-white/50 p-4 rounded-xl border border-white/50 shadow-sm hover:-translate-y-1 transition-transform">
-              <span className="text-2xl mt-0.5">🌳</span>
-              <div>
-                <strong className="text-emerald-800">Adottiamo un albero</strong>
-                <p className="text-sm text-slate-600 mt-1">Seconda fase curata dal triennio, per legare ogni classe a una pianta.</p>
-              </div>
-            </motion.div>
+        <div className="flex flex-col md:flex-row items-center gap-12 md:gap-16 mt-32">
+          {/* Box testo */}
+          <div className="w-full md:w-1/2 bg-white/70 backdrop-blur-2xl border border-emerald-100 shadow-[0_32px_80px_rgba(16,185,129,0.07)] p-8 md:p-12 rounded-[2rem]">
+            <span className="font-mono text-emerald-500 text-xs tracking-widest uppercase mb-4 block">
+              [ SINTESI PROGETTUALE ]
+            </span>
+            <motion.h2 variants={popInItem} className="text-4xl md:text-5xl font-semibold mb-8 text-emerald-950 tracking-tighter">
+              Ecosistema &ldquo;Vivo&rdquo;
+            </motion.h2>
+            <motion.p variants={popInItem} className="text-slate-600 text-xl leading-relaxed mb-8">
+              Sviluppato dalla classe 4B Informatica, il progetto costituisce un framework didattico di riqualificazione arborea urbana. 
+              Tramite il monitoraggio sistematico di un esemplare di <span className="text-emerald-700 font-semibold">Populus Alba</span>, gli studenti analizzano 
+              il ciclo di sequestro della CO₂ e la termoregolazione micro-ambientale nel Parco Dini.
+            </motion.p>
           </div>
-        </motion.div>
+          
+          {/* Immagine Sintesi */}
+          <motion.div 
+            variants={popInItem}
+            className="w-full md:w-1/2 aspect-square md:aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-emerald-900/10 border-[4px] border-white bg-slate-100 relative group"
+          >
+             <img src="/Ecosistema.jpg" alt="Ecosistema" className="w-full h-full object-cover relative z-10 transition-transform duration-700 group-hover:scale-105" />
+          </motion.div>
+        </div>
       </motion.section>
 
       {/* Note Botaniche */}
-      <motion.div
+      <motion.section
         variants={staggerContainer}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
-        className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10 px-6 cursor-default mb-8"
+        className="max-w-7xl mx-auto px-6 relative z-10 mb-60"
       >
-        <motion.section
-          variants={popInItem}
-          className="bg-white/60 backdrop-blur-2xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-8 transition-all duration-300 hover:bg-white/80 hover:scale-[1.02] hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-900/10"
-        >
-          <h2 className="text-2xl font-bold mb-4 border-b border-emerald-100 pb-3 text-emerald-900">
-            Note Botaniche 🔬
-          </h2>
-          <p className="text-sm font-semibold text-emerald-700 bg-emerald-50/50 inline-block px-3 py-1 rounded-lg border border-emerald-100/50 mb-4">
-            Populus alba · Famiglia: Salicaceae
-          </p>
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-bold text-emerald-800 mb-1">Morfologia</h4>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Caratterizzato da una corteccia chiara e foglie decidue con pagina inferiore
-                tomentosa (bianca e vellutata), l&apos;albero offre un suggestivo contrasto cromatico
-                sotto l&apos;azione del vento.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold text-emerald-800 mb-1">Ruolo Ecologico</h4>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Grazie alla sua imponenza (può superare i 30 metri), funge da naturale barriera
-                frangivento e contribuisce in modo significativo al sequestro della CO₂.
-              </p>
-            </div>
-          </div>
-        </motion.section>
+        <div className="flex flex-col-reverse md:flex-row items-center gap-12 md:gap-16">
+          {/* Immagine Botanica */}
+          <motion.div 
+            variants={popInItem}
+            className="w-full md:w-1/2 aspect-square md:aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-emerald-900/10 border-[4px] border-white bg-slate-100 relative group"
+          >
+             <img src="/Populus_Alba.jpg" alt="Botanica" className="w-full h-full object-cover relative z-10 transition-transform duration-700 group-hover:scale-105" />
+          </motion.div>
 
-        <motion.section
-          variants={popInItem}
-          className="bg-white/60 backdrop-blur-2xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-8 transition-all duration-300 hover:bg-white/80 hover:scale-[1.02] hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-900/10"
-        >
-          <h2 className="text-2xl font-bold mb-4 border-b border-emerald-100 pb-3 text-emerald-900">
-            Varietà Correlate 🌿
-          </h2>
-          <ul className="space-y-4">
-            <li>
-              <h4 className="font-bold text-emerald-800">Populus alba &quot;Bolleana&quot;</h4>
-              <p className="text-sm text-slate-600 leading-relaxed mt-1">
-                Dal portamento slanciato, cresce dritta e stretta con foglie piccole e argentate. Molto elegante.
+          {/* Box Testo */}
+          <div className="w-full md:w-1/2 bg-white/70 backdrop-blur-2xl border border-emerald-100 shadow-[0_32px_80px_rgba(16,185,129,0.07)] p-8 md:p-12 rounded-[2rem]">
+            <motion.div variants={popInItem} className="mb-8 text-left">
+              <p className="font-mono text-emerald-500 text-xs tracking-widest uppercase mb-4">
+                [ SPECIE: SALICACEAE ]
               </p>
-            </li>
-            <li>
-              <h4 className="font-bold text-emerald-800">Pyramidalis</h4>
-              <p className="text-sm text-slate-600 leading-relaxed mt-1">
-                Forma slanciata e verticale, utilizzata spesso come barriera frangivento naturale.
-              </p>
-            </li>
-            <li>
-              <h4 className="font-bold text-emerald-800">Pioppo Canescente</h4>
-              <p className="text-sm text-slate-600 leading-relaxed mt-1">
-                Ibrido naturale con il Pioppo Nero, noto per l&apos;estrema robustezza e le foglie più rotonde.
-              </p>
-            </li>
-          </ul>
-        </motion.section>
-      </motion.div>
+              <h2 className="text-5xl md:text-6xl font-semibold mb-12 text-emerald-950 tracking-tighter">
+                Populus Alba
+              </h2>
+              <div className="space-y-12">
+                <div>
+                  <h4 className="font-mono text-emerald-700 text-sm tracking-widest uppercase mb-3">/ Proprietà Riflettenti</h4>
+                  <p className="text-xl text-slate-600 leading-relaxed">
+                    Caratterizzato da corteccia chiara e fogliame deciduo. La pagina inferiore, tomentosa 
+                    e spiccatamente bianca, incrementa l&apos;albedo locale riflettendo la radiazione solare urbana.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-mono text-emerald-700 text-sm tracking-widest uppercase mb-3">/ Ruolo Infrastrutturale</h4>
+                  <p className="text-xl text-slate-600 leading-relaxed">
+                    Raggiungendo i 30 metri di altezza, l&apos;albero agisce da infrastruttura verde attiva, 
+                    fornendo uno schermo frangivento e ottimizzando il potenziale di filtrazione del particolato.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </motion.section>
 
       {/* Cronaca Operativa della Piantumazione */}
       <motion.section
@@ -403,210 +354,216 @@ export default function Home() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
-        className="max-w-5xl mx-auto px-6 relative z-10 cursor-default mb-8"
+        className="max-w-7xl mx-auto px-6 relative z-10 mb-60"
       >
-        <motion.div 
-          variants={popInItem}
-          className="bg-white/60 backdrop-blur-2xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-8 md:p-12 transition-all duration-300 hover:bg-white/80 hover:border-emerald-400 hover:shadow-2xl hover:shadow-emerald-900/10"
-        >
-          <motion.h2 variants={popInItem} className="text-3xl font-bold mb-8 text-center text-emerald-900">
-            Cronaca della Piantumazione 🪴
-          </motion.h2>
-          <motion.p variants={popInItem} className="text-center text-sm font-semibold text-emerald-700 bg-emerald-50/50 inline-flex items-center gap-2 px-4 py-1.5 rounded-lg border border-emerald-100/50 mb-8 mx-auto block w-fit">
-            📅 3 Dicembre 2025 — con supervisione di un esperto botanico
-          </motion.p>
+        <div className="flex flex-col md:flex-row items-center gap-12 md:gap-16">
+          {/* Box Testo */}
+          <motion.div 
+            variants={popInItem}
+            className="w-full md:w-1/2 bg-white/70 backdrop-blur-2xl border border-emerald-100 shadow-[0_32px_80px_rgba(16,185,129,0.07)] p-8 md:p-12 rounded-[2rem]"
+          >
+            <span className="font-mono text-emerald-500 text-xs tracking-widest uppercase mb-4 block">
+              [ ESECUZIONE OPERATIVA ]
+            </span>
+            <motion.h2 variants={popInItem} className="text-4xl md:text-6xl font-semibold mb-4 text-emerald-950 tracking-tighter">
+              Piantumazione
+            </motion.h2>
+            <motion.p variants={popInItem} className="text-slate-500 font-medium mb-12 text-sm tracking-widest uppercase">
+              03 DIC 2025 // Torricelli Deployment
+            </motion.p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            <motion.div variants={popInItem}>
-              <h3 className="text-xl font-bold mb-4 text-emerald-800">
-                Logistica e Trasporto
-              </h3>
-              <p className="text-slate-600 leading-relaxed mb-4">
-                L&apos;esemplare è stato consegnato in prossimità del sito d&apos;intervento. La movimentazione
-                finale verso il punto di scavo è stata gestita manualmente dalla classe tramite
-                l&apos;ausilio di un carrello per carichi pesanti, prestando la massima attenzione
-                all&apos;integrità del vaso e dell&apos;apparato radicale, nonostante le condizioni del terreno
-                reso fangoso dalle precipitazioni stagionali.
-              </p>
-            </motion.div>
+            <div className="space-y-10">
+              <motion.div variants={popInItem}>
+                <h3 className="font-mono text-emerald-700 text-sm tracking-widest uppercase mb-2">
+                  01. Logistica //
+                </h3>
+                <p className="text-lg text-slate-600 leading-relaxed">
+                  Movimentazione a ridotto impatto ambientale. L&apos;intervento ha impiegato attrezzature 
+                  manuali per preservare la totale integrità dell&apos;apparato radicale sul suolo compromesso dalle precipitazioni.
+                </p>
+              </motion.div>
 
-            <motion.div variants={popInItem}>
-              <h3 className="text-xl font-bold mb-4 text-emerald-800">
-                Messa a Dimora
-              </h3>
-              <p className="text-slate-600 leading-relaxed mb-4">
-                Sotto la direzione dell&apos;esperto, la classe ha proceduto allo scavo manuale della buca
-                utilizzando pale e vanghe, seguendo rigidi standard tecnici:
-              </p>
-              <ul className="space-y-3 text-sm text-slate-700">
-                <li className="flex gap-3 items-start bg-white/50 p-3 rounded-xl border border-white/50 shadow-sm">
-                  <span className="text-lg mt-0.5">💧</span>
-                  <span>
-                    <strong>Drenaggio:</strong> strato di cocci di vaso sul fondo della buca per favorire
-                    il deflusso idrico e prevenire ristagni radicali.
-                  </span>
-                </li>
-                <li className="flex gap-3 items-start bg-white/50 p-3 rounded-xl border border-white/50 shadow-sm">
-                  <span className="text-lg mt-0.5">🛡️</span>
-                  <span>
-                    <strong>Protezione:</strong> recinzione in legno assemblata sul posto per preservare
-                    la giovane pianta durante la fase critica di attecchimento.
-                  </span>
-                </li>
-                <li className="flex gap-3 items-start bg-white/50 p-3 rounded-xl border border-white/50 shadow-sm">
-                  <span className="text-lg mt-0.5">✏️</span>
-                  <span>
-                    <strong>Identificazione:</strong> installazione di una <strong>matita di legno gigante arancione</strong>,
-                    elemento distintivo scelto dalla 4B per segnalare la posizione di &quot;Vivo&quot;.
-                  </span>
-                </li>
-              </ul>
-            </motion.div>
-          </div>
-        </motion.div>
+              <motion.div variants={popInItem}>
+                <h3 className="font-mono text-emerald-700 text-sm tracking-widest uppercase mb-2">
+                  02. Messa a dimora //
+                </h3>
+                <p className="text-lg text-slate-600 leading-relaxed mb-6">
+                  Scavo strutturato su standard tecnici rigorosi: predisposizione di uno strato drenante per 
+                  minimizzare i ristagni clivi e applicazione di una recinzione protettiva per la fase di attecchimento.
+                </p>
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* Immagine Operativa */}
+          <motion.div 
+            variants={popInItem}
+            className="w-full md:w-1/2 aspect-square md:aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-emerald-900/10 border-[4px] border-white bg-slate-100 relative group"
+          >
+             <img src="/Piantumazione.png" alt="Operativa" className="w-full h-full object-cover relative z-10 transition-transform duration-700 group-hover:scale-105" />
+          </motion.div>
+        </div>
       </motion.section>
 
       {/* Sezione Grafici di Crescita */}
       <motion.section
-        initial={{ opacity: 0, y: 60, filter: "blur(10px)" }}
-        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        viewport={{ once: true, margin: "-80px" }}
-        transition={{ duration: 0.8, ease: [0.25, 0.4, 0.25, 1] }}
-        className="max-w-5xl mx-auto px-6 py-8 relative z-10"
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="max-w-7xl mx-auto px-6 relative z-10 mb-40"
         id="crescita"
       >
-        <div className="bg-white/60 backdrop-blur-2xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-8 md:p-10 transition-all duration-300 hover:bg-white/80 hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-900/10">
-          <h2 className="text-3xl font-bold mb-2 text-center text-emerald-900">
-            Dati Biometrici e Monitoraggio 📈
+        <motion.div variants={popInItem} className="w-full max-w-5xl flex flex-col items-center mx-auto bg-white/70 backdrop-blur-2xl p-8 md:p-14 rounded-[2.5rem] border border-emerald-100 shadow-[0_32px_80px_rgba(16,185,129,0.07)]">
+          <span className="font-mono text-emerald-500 text-xs tracking-widest uppercase mb-4 block">
+            [ ANALISI BIOMETRICA ONLINE ]
+          </span>
+          <h2 className="text-4xl md:text-6xl font-semibold mb-12 text-emerald-950 tracking-tighter text-center">
+            Dati di Accrescimento
           </h2>
-          <p className="text-sm text-slate-500 text-center mb-8">
-            Monitoraggio sistematico avviato ad aprile 2026 tramite la piattaforma dedicata
-          </p>
-          <TreeChart data={measurements} />
+          <div className="w-full pt-6">
+            <TreeChart data={measurements} />
+          </div>
           {measurements.length === 0 && (
-            <p className="text-sm text-slate-400 mt-4 text-center font-medium">
-              *Nessun dato ancora inserito. Vai su /admin per aggiungere le misurazioni!
+            <p className="text-sm font-mono text-slate-400 mt-4 text-center">
+              // ATTESA DATI: MODULO TELEMETRIA NON AGGIORNATO //
             </p>
           )}
           {measurements.length > 0 && (
-            <div className="mt-8 bg-emerald-50/40 border border-emerald-100 rounded-2xl p-6">
-              <h3 className="text-lg font-bold text-emerald-800 mb-3">📊 Interpretazione dei Risultati</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                I dati raccolti mostrano un incremento dell&apos;altezza del <strong>25% in soli sei giorni</strong>.
-                Ancora più rilevante è l&apos;aumento della circonferenza, che suggerisce una stabilità
-                strutturale in rapido consolidamento. Tali parametri confermano il successo delle
-                tecniche di piantumazione adottate e l&apos;ottimale adattamento del Pioppo Bianco al
-                terreno del Parco Dini.
+            <div className="mt-16 text-center w-full bg-emerald-50/50 rounded-2xl p-8 border border-emerald-100">
+              <h3 className="font-mono text-emerald-700 text-sm tracking-widest uppercase mb-4">/ Esito Analisi</h3>
+              <p className="text-lg text-slate-600 leading-relaxed max-w-3xl mx-auto">
+                Lo sviluppo vegetativo registra un incremento assiale pari al <strong className="text-emerald-800 font-semibold">25% dalla posa iniziale</strong>.
+                L&apos;associata espansione della circonferenza rileva un efficiente attecchimento radicale, validando i parametri 
+                funzionali del suolo ricevente.
               </p>
             </div>
           )}
-        </div>
+        </motion.div>
       </motion.section>
 
-      {/* Galleria immagini */}
+      {/* Galleria immagini Carousel */}
       {images.length > 0 && (
-        <section className="max-w-5xl mx-auto px-6 py-16 relative z-10">
-          <h2 className="text-3xl font-bold text-emerald-900 mb-8 text-center">
-            Galleria Fotografica 📸
+        <section className="max-w-6xl mx-auto px-6 py-16 relative z-10 w-full mb-32">
+          <span className="font-mono text-emerald-500 text-xs tracking-widest uppercase mb-4 block text-center">
+            [ ARCHIVIO VISIVO ]
+          </span>
+          <h2 className="text-4xl md:text-5xl font-semibold text-emerald-950 mb-12 text-center tracking-tighter">
+            Documentazione Fotografica
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {images.map((img, index) => (
+          <div className="relative w-full aspect-square md:aspect-[21/9] bg-white/70 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_32px_80px_rgba(16,185,129,0.07)] border border-emerald-100 overflow-hidden group">
+            <AnimatePresence mode="popLayout" initial={false}>
               <motion.div
-                key={img.id}
-                initial={{ opacity: 0, y: 30, scale: 0.9, filter: "blur(6px)" }}
-                whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.6, delay: index * 0.08, ease: [0.25, 0.4, 0.25, 1] }}
-                className="bg-white p-3 rounded-[2rem] shadow-xl border border-white hover:-translate-y-2 transition-transform duration-300"
+                key={currentCarouselIndex}
+                initial={{ opacity: 0, x: 100, filter: "blur(10px)", scale: 0.95 }}
+                animate={{ opacity: 1, x: 0, filter: "blur(0px)", scale: 1 }}
+                exit={{ opacity: 0, x: -100, filter: "blur(10px)", scale: 0.95 }}
+                transition={{ duration: 0.6, ease: [0.25, 0.4, 0.25, 1] }}
+                className="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-6"
               >
-                <div
-                  className="aspect-square overflow-hidden rounded-[1.5rem] cursor-pointer"
-                  onClick={() => setSelectedImageIndex(index)}
+                <div 
+                  className="w-full h-full relative rounded-3xl overflow-hidden cursor-pointer"
+                  onClick={() => setSelectedImageIndex(currentCarouselIndex)}
                 >
                   <img
-                    src={img.url}
-                    alt={img.caption || "Immagine galleria"}
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
-                    onError={(e) => {
-                      (e.currentTarget.parentElement as HTMLElement).style.display = "none";
-                    }}
+                    src={images[currentCarouselIndex].url}
+                    alt={images[currentCarouselIndex].caption || "Immagine galleria"}
+                    className="w-full h-full object-cover transition-transform duration-700"
                   />
+                  {/* Sfumatura in basso per il testo */}
+                  {images[currentCarouselIndex].caption && (
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-emerald-950/90 via-emerald-950/40 to-transparent pb-6 pt-24 px-6 md:pb-12">
+                      <p className="text-center text-white font-medium text-lg md:text-xl drop-shadow-md">
+                        {images[currentCarouselIndex].caption}
+                      </p>
+                    </div>
+                  )}
                 </div>
-
-                {img.caption && (
-                  <p className="py-4 px-2 text-center text-slate-600 font-medium text-sm italic">
-                    &quot;{img.caption}&quot;
-                  </p>
-                )}
               </motion.div>
-            ))}
+            </AnimatePresence>
+
+            {/* Controlli del carosello */}
+            <button 
+              onClick={prevCarouselImage}
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-white/60 hover:bg-white backdrop-blur-md text-emerald-900 shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110 z-20"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <button 
+              onClick={nextCarouselImage}
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-white/60 hover:bg-white backdrop-blur-md text-emerald-900 shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110 z-20"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            </button>
+            
+            {/* Indicatori (Dots) */}
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20 pointer-events-none">
+              {images.map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`h-2 rounded-full transition-all duration-300 ${i === currentCarouselIndex ? 'w-8 bg-emerald-500' : 'w-2 bg-slate-400/60'}`}
+                />
+              ))}
+            </div>
           </div>
         </section>
       )}
 
       {/* Map Banner */}
       <motion.section
-        initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
-        whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-5xl mx-auto px-6 py-8 relative z-10"
+        className="max-w-7xl mx-auto px-6 mb-40 relative z-10"
       >
-        <a 
-          href="https://www.google.com/maps/place/45%C2%B025'41.2%22N+9%C2%B010'47.6%22E/@45.428113,9.179875,17z/data=!3m1!4b1!4m4!3m3!8m2!3d45.428113!4d9.179875?entry=ttu&g_ep=EgoyMDI2MDQwOC4wIKXMDSoASAFQAw%3D%3D"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group relative block bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-3xl p-8 md:p-12 overflow-hidden shadow-2xl hover:shadow-[0_20px_60px_rgba(16,185,129,0.4)] transition-all duration-500 hover:-translate-y-2 cursor-pointer"
-        >
-          {/* Sfondo animato hover */}
-          <div className="absolute inset-0 bg-black/5 opacity-10 mix-blend-overlay group-hover:opacity-20 transition-opacity duration-500" />
-          <div className="absolute -right-20 -top-20 w-80 h-80 bg-emerald-400 rounded-full blur-[80px] opacity-30 group-hover:opacity-50 transition-opacity duration-700" />
-          <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-green-300 rounded-full blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
-          
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
-            <div className="text-white">
-              <h2 className="text-3xl md:text-4xl font-extrabold mb-3 tracking-tight">
-                Vieni a trovarmi 📍
-              </h2>
-              <div className="text-emerald-100/90 text-lg font-medium flex flex-wrap justify-center md:justify-start items-center gap-2">
-                <span>Parco Ulisse Dini, Milano</span>
-                <span className="opacity-50 hidden md:inline">•</span>
-                <span className="font-mono text-sm bg-black/20 px-3 py-1 rounded-full border border-white/10 backdrop-blur-md">45.428113, 9.179875</span>
-              </div>
-            </div>
-            
-            <div className="flex-shrink-0 bg-white text-emerald-700 font-bold px-8 py-4 rounded-full flex items-center gap-3 group-hover:bg-emerald-50 transition-colors shadow-lg group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)]">
-              Apri in Maps
-              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
+        <div className="flex flex-col md:flex-row items-end justify-between border-t border-emerald-100 pt-16">
+          <div className="mb-8 md:mb-0">
+            <span className="font-mono text-emerald-500 text-xs tracking-widest uppercase mb-4 block">
+              [ COORDINATE GEOGRAFICHE ]
+            </span>
+            <h2 className="text-4xl md:text-6xl font-semibold mb-6 text-emerald-950 tracking-tighter uppercase">
+              Rilevamento Sito
+            </h2>
+            <div className="flex items-center gap-4 text-emerald-700 font-medium text-xl">
+              <span>Parco Ulisse Dini, Milano</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span className="font-mono tracking-widest text-slate-500">45.428113, 9.179875</span>
             </div>
           </div>
-        </a>
+          
+          <a 
+            href="https://www.google.com/maps/place/45%C2%B025'41.2%22N+9%C2%B010'47.6%22E/@45.428113,9.179875,17z/data=!3m1!4b1!4m4!3m3!8m2!3d45.428113!4d9.179875?entry=ttu&g_ep=EgoyMDI2MDQwOC4wIKXMDSoASAFQAw%3D%3D"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center justify-between gap-6 px-12 py-6 bg-emerald-500 hover:bg-emerald-600 text-white rounded-[1.5rem] shadow-lg shadow-emerald-500/20 transition-all duration-300 ease-[0.16,1,0.3,1]"
+          >
+            <span className="font-bold tracking-widest uppercase">Visualizza Telemetria</span>
+            <svg className="w-6 h-6 transition-transform duration-300 group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </a>
+        </div>
       </motion.section>
 
       {/* Conclusioni */}
       <motion.section
-        initial={{ opacity: 0, y: 60, filter: "blur(10px)" }}
-        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        viewport={{ once: true, margin: "-80px" }}
-        transition={{ duration: 0.8, ease: [0.25, 0.4, 0.25, 1] }}
-        className="max-w-5xl mx-auto px-6 py-8 relative z-10"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, margin: "0px" }}
+        transition={{ duration: 1.5 }}
+        className="max-w-7xl mx-auto px-6 mb-32 relative z-10 text-center"
       >
-        <div className="bg-emerald-900/90 backdrop-blur-2xl border border-emerald-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.15)] rounded-3xl p-8 md:p-12 text-center">
-          <h2 className="text-2xl font-bold mb-4 text-white">
-            Conclusioni 🎓
-          </h2>
-          <p className="text-emerald-100 leading-relaxed max-w-3xl mx-auto mb-6">
-            L&apos;adozione di &quot;Vivo&quot; rappresenta per la 4B un&apos;importante esperienza di cittadinanza attiva
-            e analisi scientifica. La sinergia tra l&apos;esperienza pratica sul campo, guidata da
-            professionisti del settore, e la successiva fase di analisi informatica dei dati,
-            costituisce un esempio di come le competenze tecniche possano essere applicate con
-            successo alla tutela del patrimonio verde urbano.
+        <div className="md:w-8/12 mx-auto pt-24 pb-16">
+          <p className="font-mono text-emerald-500 text-xs tracking-widest uppercase mb-4">
+            [ TERMINE REPORT ]
           </p>
-          <p className="text-sm text-emerald-300 font-medium italic">
-            Relazione tecnica a cura della Classe 4B info — I.T. Torricelli
+          <h2 className="text-3xl md:text-4xl font-semibold mb-4 text-emerald-950 tracking-tighter">
+            Progetto Culturale Classe 4B
+          </h2>
+          <p className="text-slate-500 text-lg uppercase tracking-widest">
+            I.T. Evangelista Torricelli
           </p>
         </div>
       </motion.section>
