@@ -19,7 +19,7 @@ export async function addMeasurement(formData: FormData) {
     VALUES (${date}, ${height}, ${circumference})
   `;
 
-  revalidatePath('/dashboard');
+  revalidatePath('/');
   revalidatePath('/admin');
 }
 
@@ -31,8 +31,22 @@ export async function deleteMeasurement(id: number) {
   const sql = neon(process.env.DATABASE_URL!);
   await sql`DELETE FROM measurements WHERE id = ${id}`;
 
-  revalidatePath('/dashboard');
+  revalidatePath('/');
   revalidatePath('/admin');
+}
+
+// --- FUNZIONE PER I DATI DEI GRAFICI ---
+
+export async function getMeasurements() {
+  if (!process.env.DATABASE_URL) return [];
+  const sql = neon(process.env.DATABASE_URL);
+  const data = await sql`SELECT date, height_cm, circumference_cm FROM measurements ORDER BY date ASC`;
+  return data.map((row: any) => ({
+    ...row,
+    height_cm: Number(row.height_cm),
+    circumference_cm: Number(row.circumference_cm),
+    date: new Date(row.date).toLocaleDateString('it-IT'),
+  }));
 }
 
 // --- NUOVE FUNZIONI PER LE IMMAGINI ---

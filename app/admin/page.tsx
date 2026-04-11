@@ -38,7 +38,7 @@ export default async function AdminPage() {
           </div>
           <div className="flex items-center gap-4">
             <Link href="/" className="text-emerald-600 hover:underline text-sm font-medium">Vai al Sito</Link>
-            <Link href="/dashboard" className="text-emerald-600 hover:underline text-sm font-medium">Vedi Grafici</Link>
+            <Link href="/#crescita" className="text-emerald-600 hover:underline text-sm font-medium">Vedi Grafici</Link>
             
             <form action={handleLogout}>
               <button type="submit" className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors">
