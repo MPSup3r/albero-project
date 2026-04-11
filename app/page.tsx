@@ -1,10 +1,10 @@
 "use client";
 
-import { FormEvent, KeyboardEvent, useEffect, useState } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import { getImages, getMeasurements } from "./actions";
 import TreeChart from "@/components/TreeChart";
 
@@ -167,19 +167,79 @@ export default function Home() {
     }
   }
 
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "45%"]);
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.85]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+
+  // Aggressive stagger animation variants
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const popInItem = {
+    hidden: { opacity: 0, y: 50, scale: 0.9, filter: "blur(12px)" },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      filter: "blur(0px)",
+      transition: {
+        duration: 0.8,
+        ease: [0.16, 1, 0.3, 1] as any, // Very snappy spring-like ease
+      },
+    },
+  };
+
   return (
     <main className="min-h-screen bg-[#F9FAFB] relative overflow-hidden font-sans text-slate-800">
-      {/* Sfondi decorativi */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-200/50 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-green-100/60 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[10%] w-[600px] h-[600px] bg-emerald-100/40 rounded-full blur-[120px] pointer-events-none" />
+      {/* Sfondi decorativi animati */}
+      <motion.div
+        animate={{
+          x: [0, 30, -20, 0],
+          y: [0, -40, 20, 0],
+          scale: [1, 1.1, 0.95, 1],
+        }}
+        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-200/50 rounded-full blur-[100px] pointer-events-none"
+      />
+      <motion.div
+        animate={{
+          x: [0, -25, 35, 0],
+          y: [0, 30, -25, 0],
+          scale: [1, 0.9, 1.05, 1],
+        }}
+        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+        className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-green-100/60 rounded-full blur-[100px] pointer-events-none"
+      />
+      <motion.div
+        animate={{
+          x: [0, 40, -30, 0],
+          y: [0, -20, 40, 0],
+          scale: [1, 1.08, 0.92, 1],
+        }}
+        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+        className="absolute bottom-[-10%] left-[10%] w-[600px] h-[600px] bg-emerald-100/40 rounded-full blur-[120px] pointer-events-none"
+      />
 
       {/* Hero Section */}
-      <header className="max-w-5xl mx-auto mb-16 relative pt-10">
+      <header ref={heroRef} className="max-w-5xl mx-auto mb-16 relative pt-10">
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.9 }}
-          transition={{ duration: 1.5, ease: "easeInOut" }}
+          initial={{ opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
+          style={{ y: heroY, scale: heroScale }}
           className="absolute inset-0 z-0 h-[500px] md:h-[600px] w-full pointer-events-auto cursor-grab active:cursor-grabbing"
         >
           <Canvas camera={{ position: [0, 2, 12], fov: 45 }}>
@@ -191,79 +251,95 @@ export default function Home() {
           </Canvas>
         </motion.div>
 
-        <div className="relative z-10 text-center mt-8 h-[500px] md:h-[600px] flex flex-col items-center justify-center pointer-events-none">
+        <motion.div
+          style={{ opacity: heroOpacity }}
+          className="relative z-10 text-center mt-8 h-[500px] md:h-[600px] flex flex-col items-center justify-center pointer-events-none"
+        >
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            initial={{ opacity: 0, y: 60, filter: "blur(20px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 1.2, delay: 0.2, ease: [0.25, 0.4, 0.25, 1] }}
             className="text-7xl md:text-9xl font-extrabold tracking-tight mb-4 text-emerald-900 drop-shadow-sm"
           >
             Vivo
           </motion.h1>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+            initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 0.8, delay: 0.6, ease: [0.25, 0.4, 0.25, 1] }}
             className="bg-white/50 backdrop-blur-md border border-white/60 shadow-sm px-6 py-2 rounded-full"
           >
             <p className="text-xl md:text-2xl font-medium text-emerald-800 tracking-wide">
               Il nostro Pioppo Bianco
             </p>
           </motion.div>
-        </div>
+
+          <motion.div
+            initial={{ opacity: 0, scaleX: 0 }}
+            animate={{ opacity: 1, scaleX: 1 }}
+            transition={{ duration: 1, delay: 1, ease: [0.25, 0.4, 0.25, 1] }}
+            className="mt-8 h-[1px] w-32 bg-gradient-to-r from-transparent via-emerald-400 to-transparent"
+          />
+        </motion.div>
 
       </header>
 
       {/* Quadro Generale del Progetto */}
       <motion.section
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
         className="max-w-5xl mx-auto px-6 relative z-10 cursor-default mb-8"
       >
-        <div className="bg-white/60 backdrop-blur-2xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-8 md:p-12 transition-all duration-300 hover:bg-white/80 hover:border-emerald-400 hover:shadow-2xl hover:shadow-emerald-900/10">
-          <h2 className="text-3xl font-bold mb-8 text-center text-emerald-900">
+        <motion.div 
+          variants={popInItem}
+          className="bg-white/60 backdrop-blur-2xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-8 md:p-12 transition-all duration-300 hover:bg-white/80 hover:border-emerald-400 hover:shadow-2xl hover:shadow-emerald-900/10"
+        >
+          <motion.h2 variants={popInItem} className="text-3xl font-bold mb-8 text-center text-emerald-900">
             Il Progetto &quot;Vivo&quot; 🌱
-          </h2>
-          <p className="text-slate-600 leading-relaxed font-medium text-center max-w-3xl mx-auto mb-6">
+          </motion.h2>
+          <motion.p variants={popInItem} className="text-slate-600 leading-relaxed font-medium text-center max-w-3xl mx-auto mb-6">
             Il progetto &quot;Vivo&quot; rappresenta l&apos;impegno concreto della classe 4B Informatica
             dell&apos;I.T. Evangelista Torricelli nell&apos;ambito dell&apos;iniziativa ambientale{" "}
             <strong className="text-emerald-800">Green School – &quot;Coloriamo di Verde&quot;</strong>.
-          </p>
-          <p className="text-slate-600 leading-relaxed text-center max-w-3xl mx-auto mb-8">
+          </motion.p>
+          <motion.p variants={popInItem} className="text-slate-600 leading-relaxed text-center max-w-3xl mx-auto mb-8">
             L&apos;obiettivo primario è la riqualificazione arborea dell&apos;area di via Ulisse Dini a Milano,
             attraverso la messa a dimora e il monitoraggio costante di un esemplare di Pioppo Bianco
             (<em>Populus alba</em>). L&apos;intervento si configura come un laboratorio scientifico a cielo 
             aperto per lo studio della crescita vegetativa in ambiente urbano.
-          </p>
+          </motion.p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex gap-3 items-start bg-white/50 p-4 rounded-xl border border-white/50 shadow-sm">
+            <motion.div variants={popInItem} className="flex gap-3 items-start bg-white/50 p-4 rounded-xl border border-white/50 shadow-sm hover:-translate-y-1 transition-transform">
               <span className="text-2xl mt-0.5">🌿</span>
               <div>
                 <strong className="text-emerald-800">Portiamo il verde in classe</strong>
                 <p className="text-sm text-slate-600 mt-1">Prima fase curata dal primo biennio.</p>
               </div>
-            </div>
-            <div className="flex gap-3 items-start bg-white/50 p-4 rounded-xl border border-white/50 shadow-sm">
+            </motion.div>
+            <motion.div variants={popInItem} className="flex gap-3 items-start bg-white/50 p-4 rounded-xl border border-white/50 shadow-sm hover:-translate-y-1 transition-transform">
               <span className="text-2xl mt-0.5">🌳</span>
               <div>
                 <strong className="text-emerald-800">Adottiamo un albero</strong>
                 <p className="text-sm text-slate-600 mt-1">Seconda fase curata dal triennio, per legare ogni classe a una pianta.</p>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </motion.section>
 
       {/* Note Botaniche */}
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10 px-6 cursor-default mb-8">
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10 px-6 cursor-default mb-8"
+      >
         <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          variants={popInItem}
           className="bg-white/60 backdrop-blur-2xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-8 transition-all duration-300 hover:bg-white/80 hover:scale-[1.02] hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-900/10"
         >
           <h2 className="text-2xl font-bold mb-4 border-b border-emerald-100 pb-3 text-emerald-900">
@@ -292,10 +368,7 @@ export default function Home() {
         </motion.section>
 
         <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+          variants={popInItem}
           className="bg-white/60 backdrop-blur-2xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-8 transition-all duration-300 hover:bg-white/80 hover:scale-[1.02] hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-900/10"
         >
           <h2 className="text-2xl font-bold mb-4 border-b border-emerald-100 pb-3 text-emerald-900">
@@ -322,26 +395,29 @@ export default function Home() {
             </li>
           </ul>
         </motion.section>
-      </div>
+      </motion.div>
 
       {/* Cronaca Operativa della Piantumazione */}
       <motion.section
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
         className="max-w-5xl mx-auto px-6 relative z-10 cursor-default mb-8"
       >
-        <div className="bg-white/60 backdrop-blur-2xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-8 md:p-12 transition-all duration-300 hover:bg-white/80 hover:border-emerald-400 hover:shadow-2xl hover:shadow-emerald-900/10">
-          <h2 className="text-3xl font-bold mb-8 text-center text-emerald-900">
+        <motion.div 
+          variants={popInItem}
+          className="bg-white/60 backdrop-blur-2xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-8 md:p-12 transition-all duration-300 hover:bg-white/80 hover:border-emerald-400 hover:shadow-2xl hover:shadow-emerald-900/10"
+        >
+          <motion.h2 variants={popInItem} className="text-3xl font-bold mb-8 text-center text-emerald-900">
             Cronaca della Piantumazione 🪴
-          </h2>
-          <p className="text-center text-sm font-semibold text-emerald-700 bg-emerald-50/50 inline-flex items-center gap-2 px-4 py-1.5 rounded-lg border border-emerald-100/50 mb-8 mx-auto block w-fit">
+          </motion.h2>
+          <motion.p variants={popInItem} className="text-center text-sm font-semibold text-emerald-700 bg-emerald-50/50 inline-flex items-center gap-2 px-4 py-1.5 rounded-lg border border-emerald-100/50 mb-8 mx-auto block w-fit">
             📅 3 Dicembre 2025 — con supervisione di un esperto botanico
-          </p>
+          </motion.p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            <div>
+            <motion.div variants={popInItem}>
               <h3 className="text-xl font-bold mb-4 text-emerald-800">
                 Logistica e Trasporto
               </h3>
@@ -352,9 +428,9 @@ export default function Home() {
                 all&apos;integrità del vaso e dell&apos;apparato radicale, nonostante le condizioni del terreno
                 reso fangoso dalle precipitazioni stagionali.
               </p>
-            </div>
+            </motion.div>
 
-            <div>
+            <motion.div variants={popInItem}>
               <h3 className="text-xl font-bold mb-4 text-emerald-800">
                 Messa a Dimora
               </h3>
@@ -385,17 +461,17 @@ export default function Home() {
                   </span>
                 </li>
               </ul>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </motion.section>
 
       {/* Sezione Grafici di Crescita */}
       <motion.section
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+        initial={{ opacity: 0, y: 60, filter: "blur(10px)" }}
+        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.8, ease: [0.25, 0.4, 0.25, 1] }}
         className="max-w-5xl mx-auto px-6 py-8 relative z-10"
         id="crescita"
       >
@@ -438,9 +514,10 @@ export default function Home() {
             {images.map((img, index) => (
               <motion.div
                 key={img.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
+                initial={{ opacity: 0, y: 30, scale: 0.9, filter: "blur(6px)" }}
+                whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.6, delay: index * 0.08, ease: [0.25, 0.4, 0.25, 1] }}
                 className="bg-white p-3 rounded-[2rem] shadow-xl border border-white hover:-translate-y-2 transition-transform duration-300"
               >
                 <div
@@ -468,12 +545,53 @@ export default function Home() {
         </section>
       )}
 
+      {/* Map Banner */}
+      <motion.section
+        initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
+        whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="max-w-5xl mx-auto px-6 py-8 relative z-10"
+      >
+        <a 
+          href="https://www.google.com/maps/place/45%C2%B025'41.2%22N+9%C2%B010'47.6%22E/@45.428113,9.179875,17z/data=!3m1!4b1!4m4!3m3!8m2!3d45.428113!4d9.179875?entry=ttu&g_ep=EgoyMDI2MDQwOC4wIKXMDSoASAFQAw%3D%3D"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group relative block bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-3xl p-8 md:p-12 overflow-hidden shadow-2xl hover:shadow-[0_20px_60px_rgba(16,185,129,0.4)] transition-all duration-500 hover:-translate-y-2 cursor-pointer"
+        >
+          {/* Sfondo animato hover */}
+          <div className="absolute inset-0 bg-black/5 opacity-10 mix-blend-overlay group-hover:opacity-20 transition-opacity duration-500" />
+          <div className="absolute -right-20 -top-20 w-80 h-80 bg-emerald-400 rounded-full blur-[80px] opacity-30 group-hover:opacity-50 transition-opacity duration-700" />
+          <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-green-300 rounded-full blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
+          
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
+            <div className="text-white">
+              <h2 className="text-3xl md:text-4xl font-extrabold mb-3 tracking-tight">
+                Vieni a trovarmi 📍
+              </h2>
+              <div className="text-emerald-100/90 text-lg font-medium flex flex-wrap justify-center md:justify-start items-center gap-2">
+                <span>Parco Ulisse Dini, Milano</span>
+                <span className="opacity-50 hidden md:inline">•</span>
+                <span className="font-mono text-sm bg-black/20 px-3 py-1 rounded-full border border-white/10 backdrop-blur-md">45.428113, 9.179875</span>
+              </div>
+            </div>
+            
+            <div className="flex-shrink-0 bg-white text-emerald-700 font-bold px-8 py-4 rounded-full flex items-center gap-3 group-hover:bg-emerald-50 transition-colors shadow-lg group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)]">
+              Apri in Maps
+              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </div>
+          </div>
+        </a>
+      </motion.section>
+
       {/* Conclusioni */}
       <motion.section
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        initial={{ opacity: 0, y: 60, filter: "blur(10px)" }}
+        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.8, ease: [0.25, 0.4, 0.25, 1] }}
         className="max-w-5xl mx-auto px-6 py-8 relative z-10"
       >
         <div className="bg-emerald-900/90 backdrop-blur-2xl border border-emerald-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.15)] rounded-3xl p-8 md:p-12 text-center">

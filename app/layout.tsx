@@ -1,5 +1,6 @@
 // app/layout.tsx
 import "./globals.css";
+import SmoothScroll from "@/components/SmoothScroll";
 
 export const metadata = {
   title: "Vivo Tree - Monitoraggio Crescita",
@@ -13,8 +14,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="it">
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="antialiased text-slate-800">
-        {children}
+        <SmoothScroll>
+          {children}
+        </SmoothScroll>
       </body>
     </html>
   );
