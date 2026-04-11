@@ -12,6 +12,7 @@ type GalleryImage = {
   id: string | number;
   url: string;
   caption?: string;
+  description?: string;
 };
 
 function BasicTree() {
@@ -68,6 +69,8 @@ export default function Home() {
               url: typeof item.url === "string" ? item.url : "",
               caption:
                 typeof item.caption === "string" ? item.caption : undefined,
+              description:
+                typeof item.description === "string" ? item.description : undefined,
             }))
             .filter((item) => item.url.length > 0)
         : [];
@@ -442,43 +445,66 @@ const prevCarouselImage = () => {
         </motion.div>
       </motion.section>
 
-      {/* Galleria immagini Carousel */}
+      {/* Diario Visivo */}
       {images.length > 0 && (
-        <section className="max-w-6xl mx-auto px-6 py-16 relative z-10 w-full mb-32">
+        <section className="max-w-6xl mx-auto px-6 py-16 relative z-10 w-full mb-32" id="diario">
           <span className="font-mono text-emerald-500 text-xs tracking-widest uppercase mb-4 block text-center">
             [ ARCHIVIO VISIVO ]
           </span>
           <h2 className="text-4xl md:text-5xl font-semibold text-emerald-950 mb-12 text-center tracking-tighter">
-            Documentazione Fotografica
+            Diario di Bordo
           </h2>
 
-          <div className="relative w-full aspect-square md:aspect-[21/9] bg-white/70 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_32px_80px_rgba(16,185,129,0.07)] border border-emerald-100 overflow-hidden group">
-            <AnimatePresence mode="popLayout" initial={false}>
+          <div className="relative w-full bg-[#fcfbf9] rounded-[2.5rem] shadow-[0_32px_80px_rgba(16,185,129,0.07)] border border-stone-200 overflow-hidden group py-12 px-8 min-h-[600px] flex items-center justify-center">
+            
+            {/* Struttura del libro aperto */}
+            <div className="absolute inset-y-0 left-1/2 w-px bg-gradient-to-b from-transparent via-stone-300 to-transparent shadow-[-1px_0_4px_rgba(0,0,0,0.1)] hidden md:block"></div>
+
+            <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={currentCarouselIndex}
-                initial={{ opacity: 0, x: 100, filter: "blur(10px)", scale: 0.95 }}
-                animate={{ opacity: 1, x: 0, filter: "blur(0px)", scale: 1 }}
-                exit={{ opacity: 0, x: -100, filter: "blur(10px)", scale: 0.95 }}
-                transition={{ duration: 0.6, ease: [0.25, 0.4, 0.25, 1] }}
-                className="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-6"
+                initial={{ opacity: 0, scale: 0.98, rotateY: -10 }}
+                animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                exit={{ opacity: 0, scale: 0.98, rotateY: 10 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="w-full flex flex-col md:flex-row items-stretch max-w-5xl mx-auto gap-8 md:gap-16 z-10"
               >
-                <div 
-                  className="w-full h-full relative rounded-3xl overflow-hidden cursor-pointer"
-                  onClick={() => setSelectedImageIndex(currentCarouselIndex)}
-                >
-                  <img
-                    src={images[currentCarouselIndex].url}
-                    alt={images[currentCarouselIndex].caption || "Immagine galleria"}
-                    className="w-full h-full object-cover transition-transform duration-700"
-                  />
-                  {/* Sfumatura in basso per il testo */}
-                  {images[currentCarouselIndex].caption && (
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-emerald-950/90 via-emerald-950/40 to-transparent pb-6 pt-24 px-6 md:pb-12">
-                      <p className="text-center text-white font-medium text-lg md:text-xl drop-shadow-md">
-                        {images[currentCarouselIndex].caption}
-                      </p>
-                    </div>
-                  )}
+                {/* Pagina Sinistra (Immagine) */}
+                <div className="w-full md:w-1/2 flex items-center justify-center cursor-pointer" onClick={() => setSelectedImageIndex(currentCarouselIndex)}>
+                  <div className="relative w-full max-w-sm aspect-square md:aspect-[4/5] bg-white p-3 shadow-xl transform -rotate-2 hover:rotate-0 transition-transform duration-500 border border-stone-100">
+                    <img
+                      src={images[currentCarouselIndex].url}
+                      alt={images[currentCarouselIndex].caption || "Immagine diario"}
+                      className="w-full h-full object-cover grayscale-[20%] sepia-[10%] group-hover:grayscale-0 group-hover:sepia-0 transition-all duration-700"
+                    />
+                    {/* Tape nastro adesivo fotorealistico */}
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-white/40 backdrop-blur-sm border border-white/20 shadow-sm rotate-2"></div>
+                  </div>
+                </div>
+
+                {/* Pagina Destra (Testo) */}
+                <div className="w-full md:w-1/2 flex flex-col justify-center text-stone-800 pr-8">
+                  <div className="flex items-center gap-4 mb-8">
+                     <span className="text-stone-400 font-mono text-sm tracking-widest block uppercase border-b border-stone-300 pb-1">
+                        Entry Nº {String(currentCarouselIndex + 1).padStart(3, '0')}
+                     </span>
+                  </div>
+                  <h3 className="text-4xl md:text-5xl font-serif text-stone-900 mb-6 leading-tight">
+                    {images[currentCarouselIndex].caption || "Appunto senza titolo"}
+                  </h3>
+                  <div className="space-y-4">
+                     {images[currentCarouselIndex].description ? (
+                         images[currentCarouselIndex].description?.split('\n').map((paragraph, i) => (
+                           <p key={i} className="text-lg md:text-xl text-stone-600 leading-relaxed font-medium">
+                             {paragraph}
+                           </p>
+                         ))
+                     ) : (
+                        <p className="text-lg md:text-xl text-stone-400 italic">
+                          Nessuna descrizione disponibile per questo scatto.
+                        </p>
+                     )}
+                  </div>
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -486,23 +512,23 @@ const prevCarouselImage = () => {
             {/* Controlli del carosello */}
             <button 
               onClick={prevCarouselImage}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-white/60 hover:bg-white backdrop-blur-md text-emerald-900 shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110 z-20"
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-14 h-14 flex items-center justify-center rounded-full bg-white text-stone-600 shadow-xl opacity-0 group-hover:opacity-100 transition-all hover:scale-110 hover:text-emerald-600 z-20 border border-stone-100"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
             <button 
               onClick={nextCarouselImage}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-white/60 hover:bg-white backdrop-blur-md text-emerald-900 shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110 z-20"
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 flex items-center justify-center rounded-full bg-white text-stone-600 shadow-xl opacity-0 group-hover:opacity-100 transition-all hover:scale-110 hover:text-emerald-600 z-20 border border-stone-100"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
             </button>
             
             {/* Indicatori (Dots) */}
-            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20 pointer-events-none">
+            <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-3 z-20 pointer-events-none">
               {images.map((_, i) => (
                 <div 
                   key={i} 
-                  className={`h-2 rounded-full transition-all duration-300 ${i === currentCarouselIndex ? 'w-8 bg-emerald-500' : 'w-2 bg-slate-400/60'}`}
+                  className={`h-2 rounded-full transition-all duration-300 ${i === currentCarouselIndex ? 'w-10 bg-emerald-600 shadow-sm' : 'w-2 bg-stone-300'}`}
                 />
               ))}
             </div>

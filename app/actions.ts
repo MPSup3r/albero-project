@@ -65,6 +65,7 @@ export async function addImage(formData: FormData) {
 
   const file = formData.get('image') as File;
   const caption = formData.get('caption') as string;
+  const description = formData.get('description') as string;
 
   if (!file || file.size === 0) throw new Error("Nessun file caricato");
 
@@ -75,7 +76,7 @@ export async function addImage(formData: FormData) {
 
   const sql = neon(process.env.DATABASE_URL!);
   // Salviamo la stringa Base64 nella colonna "url" (che è di tipo TEXT)
-  await sql`INSERT INTO tree_images (url, caption) VALUES (${base64Data}, ${caption})`;
+  await sql`INSERT INTO tree_images (url, caption, description) VALUES (${base64Data}, ${caption}, ${description})`;
 
   revalidatePath('/');
   revalidatePath('/admin');
