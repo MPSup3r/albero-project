@@ -609,7 +609,12 @@ const prevCarouselImage = () => {
           <div className="pt-12 border-t border-emerald-100/60 max-w-2xl mx-auto space-y-2">
             <p className="text-sm text-slate-500">via U. Dini, 7 - 20142 - 201xx Milano (MI)</p>
             <p className="text-sm text-slate-500">Tel 02/89511344 - Mail: miis101008@istruzione.it - PEC: miis101008@pec.istruzione.it</p>
-            <p className="text-sm text-slate-500">Codice meccanografico: MIIS101008 - C.F. 97324880158</p>
+            <p className="text-sm text-slate-500 mb-6">Codice meccanografico: MIIS101008 - C.F. 97324880158</p>
+            <div className="pt-4 flex justify-center gap-6 text-sm">
+              <Link href="/privacy" className="text-emerald-600 hover:text-emerald-700 hover:underline font-medium">Privacy Policy</Link>
+              <span className="text-slate-300">|</span>
+              <Link href="/termini" className="text-emerald-600 hover:text-emerald-700 hover:underline font-medium">Termini e Condizioni</Link>
+            </div>
           </div>
         </div>
       </motion.footer>

@@ -1,6 +1,7 @@
 // app/layout.tsx
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
+import CookieBanner from "@/components/CookieBanner";
 
 export const metadata = {
   title: "Vivo Tree - Monitoraggio Crescita",
@@ -24,6 +25,7 @@ export default function RootLayout({
         <SmoothScroll>
           {children}
         </SmoothScroll>
+        <CookieBanner />
       </body>
     </html>
   );
