@@ -36,6 +36,7 @@ export default function Home() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
+  const [carouselInteraction, setCarouselInteraction] = useState(0);
   const [measurements, setMeasurements] = useState<any[]>([]);
 
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -96,21 +97,23 @@ export default function Home() {
   return () => clearInterval(intervalId);
 }, [HINT_DURATION_MS, HINT_TIMER_MS, isChatOpen]);
 
-// Carousel Auto-play logic
+// Carousel Auto-play logic - 10 secondi e reset al tocco
 useEffect(() => {
   if (images.length === 0) return;
   const carouselInterval = setInterval(() => {
     setCurrentCarouselIndex((prev) => (prev + 1) % images.length);
-  }, 4000);
+  }, 10000); // tempo allungato
   return () => clearInterval(carouselInterval);
-}, [images.length]);
+}, [images.length, carouselInteraction]);
 
 const nextCarouselImage = () => {
   setCurrentCarouselIndex((prev) => (prev + 1) % images.length);
+  setCarouselInteraction(prev => prev + 1); // Resetta il timer
 };
 
 const prevCarouselImage = () => {
   setCurrentCarouselIndex((prev) => (prev - 1 + images.length) % images.length);
+  setCarouselInteraction(prev => prev + 1); // Resetta il timer
 };
 
   const handleOpenChat = () => {
@@ -455,10 +458,16 @@ const prevCarouselImage = () => {
             Diario di Bordo
           </h2>
 
-          <div className="relative w-full bg-[#fcfbf9] rounded-[2.5rem] shadow-[0_32px_80px_rgba(16,185,129,0.07)] border border-stone-200 overflow-hidden group py-12 px-8 min-h-[600px] flex items-center justify-center">
-            
-            {/* Struttura del libro aperto */}
-            <div className="absolute inset-y-0 left-1/2 w-px bg-gradient-to-b from-transparent via-stone-300 to-transparent shadow-[-1px_0_4px_rgba(0,0,0,0.1)] hidden md:block"></div>
+          <div className="relative w-full max-w-5xl mx-auto flex items-stretch justify-center group perspective-[2000px]">
+             {/* Copertina Rigida */}
+             <div className="absolute inset-0 bg-[#d4cab3] rounded-[1.5rem] shadow-2xl transform translate-y-3 translate-x-1 border border-[#c4ba9e] -z-10 hidden md:block"></div>
+             
+             {/* Pagine del Libro */}
+             <div className="relative w-full bg-[#fdfbf6] rounded-xl sm:rounded-[1.5rem] shadow-[inset_0_0_60px_rgba(150,140,110,0.08)] border border-[#e6dfcc] overflow-hidden py-12 px-6 md:px-12 min-h-[600px] flex items-center justify-center">
+               
+               {/* Ombre e rilegatura centrale del libro aperto */}
+               <div className="absolute inset-y-0 left-1/2 w-24 -translate-x-1/2 bg-gradient-to-r from-transparent via-[#ddd2b8]/50 to-transparent shadow-[inset_10px_0_20px_rgba(0,0,0,0.02)] hidden md:block pointer-events-none"></div>
+               <div className="absolute inset-y-0 left-1/2 w-px bg-gradient-to-b from-transparent via-[#c6bc9c] to-transparent shadow-[-2px_0_5px_rgba(0,0,0,0.15)] hidden md:block pointer-events-none"></div>
 
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
@@ -470,38 +479,42 @@ const prevCarouselImage = () => {
                 className="w-full flex flex-col md:flex-row items-stretch max-w-5xl mx-auto gap-8 md:gap-16 z-10"
               >
                 {/* Pagina Sinistra (Immagine) */}
-                <div className="w-full md:w-1/2 flex items-center justify-center cursor-pointer" onClick={() => setSelectedImageIndex(currentCarouselIndex)}>
-                  <div className="relative w-full max-w-sm aspect-square md:aspect-[4/5] bg-white p-3 shadow-xl transform -rotate-2 hover:rotate-0 transition-transform duration-500 border border-stone-100">
+                <div className="w-full md:w-1/2 flex items-center justify-center md:pr-10 cursor-pointer" onClick={() => setSelectedImageIndex(currentCarouselIndex)}>
+                  <div className="relative w-full max-w-sm aspect-square md:aspect-[4/5] bg-[#FBFAF7] p-4 shadow-[0_15px_30px_rgba(0,0,0,0.12)] transform -rotate-2 hover:rotate-0 transition-transform duration-500 border border-[#e4dcce]">
                     <img
                       src={images[currentCarouselIndex].url}
                       alt={images[currentCarouselIndex].caption || "Immagine diario"}
-                      className="w-full h-full object-cover grayscale-[20%] sepia-[10%] group-hover:grayscale-0 group-hover:sepia-0 transition-all duration-700"
+                      className="w-full h-full object-cover grayscale-[30%] sepia-[20%] group-hover:grayscale-0 group-hover:sepia-0 transition-all duration-700 rounded-[2px]"
                     />
-                    {/* Tape nastro adesivo fotorealistico */}
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-white/40 backdrop-blur-sm border border-white/20 shadow-sm rotate-2"></div>
+                    {/* Scotch tape migliorato */}
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-28 h-8 bg-white/30 backdrop-blur-md border border-white/40 shadow-sm rotate-2 mix-blend-overlay"></div>
                   </div>
                 </div>
 
                 {/* Pagina Destra (Testo) */}
-                <div className="w-full md:w-1/2 flex flex-col justify-center text-stone-800 pr-8">
-                  <div className="flex items-center gap-4 mb-8">
-                     <span className="text-stone-400 font-mono text-sm tracking-widest block uppercase border-b border-stone-300 pb-1">
+                <div className="w-full md:w-1/2 flex flex-col justify-center text-[#2a2723] md:pl-10">
+                  <div className="flex items-center justify-between mb-8">
+                     <span className="text-[#a89f91] font-mono text-sm tracking-widest block uppercase px-2 py-1 border border-[#e2dac6] bg-[#f8f5ee] rounded-md shadow-sm">
                         Entry Nº {String(currentCarouselIndex + 1).padStart(3, '0')}
                      </span>
                   </div>
-                  <h3 className="text-4xl md:text-5xl font-serif text-stone-900 mb-6 leading-tight">
+                  
+                  {/* Testo simulante l'inchiostro scritto */}
+                  <h3 className="text-4xl md:text-5xl font-serif text-[#37342f] mb-6 leading-tight select-all">
                     {images[currentCarouselIndex].caption || "Appunto senza titolo"}
                   </h3>
-                  <div className="space-y-4">
+                  
+                  {/* Righe tipiche da quaderno (decorative) come sfondo al testo */}
+                  <div className="space-y-6 relative z-10 before:absolute before:inset-0 before:bg-[linear-gradient(transparent_0px,transparent_31px,#e6dfcc_32px)] before:bg-[length:100%_32px] before:-z-10 before:opacity-60 pt-1">
                      {images[currentCarouselIndex].description ? (
-                         images[currentCarouselIndex].description?.split('\n').map((paragraph, i) => (
-                           <p key={i} className="text-lg md:text-xl text-stone-600 leading-relaxed font-medium">
+                         images[currentCarouselIndex].description?.split('\n').filter(p => p.trim() !== '').map((paragraph, i) => (
+                           <p key={i} className="text-xl md:text-2xl text-[#4a463e] leading-[32px] font-serif italic antialiased drop-shadow-[0_1px_rgba(255,255,255,1)]">
                              {paragraph}
                            </p>
                          ))
                      ) : (
-                        <p className="text-lg md:text-xl text-stone-400 italic">
-                          Nessuna descrizione disponibile per questo scatto.
+                        <p className="text-xl md:text-2xl text-[#8d8576] italic font-serif leading-[32px]">
+                          Nessun appunto registrato per questa data.
                         </p>
                      )}
                   </div>
@@ -532,6 +545,7 @@ const prevCarouselImage = () => {
                 />
               ))}
             </div>
+          </div>
           </div>
         </section>
       )}
@@ -573,26 +587,32 @@ const prevCarouselImage = () => {
         </div>
       </motion.section>
 
-      {/* Conclusioni */}
-      <motion.section
+      {/* Footer / Info Legali */}
+      <motion.footer
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, margin: "0px" }}
         transition={{ duration: 1.5 }}
         className="max-w-7xl mx-auto px-6 mb-32 relative z-10 text-center"
       >
-        <div className="md:w-8/12 mx-auto pt-24 pb-16">
+        <div className="md:w-8/12 mx-auto pt-24 pb-8">
           <p className="font-mono text-emerald-500 text-xs tracking-widest uppercase mb-4">
             [ TERMINE REPORT ]
           </p>
           <h2 className="text-3xl md:text-4xl font-semibold mb-4 text-emerald-950 tracking-tighter">
             Progetto Culturale Classe 4B
           </h2>
-          <p className="text-slate-500 text-lg uppercase tracking-widest">
+          <p className="text-slate-500 text-lg uppercase tracking-widest mb-16">
             I.T. Evangelista Torricelli
           </p>
+          
+          <div className="pt-12 border-t border-emerald-100/60 max-w-2xl mx-auto space-y-2">
+            <p className="text-sm text-slate-500">via U. Dini, 7 - 20142 - 201xx Milano (MI)</p>
+            <p className="text-sm text-slate-500">Tel 02/89511344 - Mail: miis101008@istruzione.it - PEC: miis101008@pec.istruzione.it</p>
+            <p className="text-sm text-slate-500">Codice meccanografico: MIIS101008 - C.F. 97324880158</p>
+          </div>
         </div>
-      </motion.section>
+      </motion.footer>
 
       {/* Spazio finale */}
       <div className="h-24" />
