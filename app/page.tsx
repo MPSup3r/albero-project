@@ -660,6 +660,26 @@ const prevCarouselImage = () => {
             </svg>
           </a>
         </div>
+
+        {/* Map Preview Iframe */}
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full h-[400px] md:h-[500px] mt-12 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-emerald-900/10 border-[6px] border-white bg-slate-100 relative group"
+        >
+          <iframe
+             src="https://maps.google.com/maps?q=45.428113,9.179875&t=k&hl=it&z=18&ie=UTF8&output=embed"
+             width="100%"
+             height="100%"
+             style={{ border: 0 }}
+             allowFullScreen={false}
+             loading="lazy"
+             referrerPolicy="no-referrer-when-downgrade"
+             className="w-full h-full opacity-90 transition-opacity duration-700 group-hover:opacity-100 grayscale-[20%] group-hover:grayscale-0"
+          ></iframe>
+        </motion.div>
       </motion.section>
 
       {/* Footer / Info Legali */}
