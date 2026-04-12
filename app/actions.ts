@@ -35,6 +35,27 @@ export async function deleteMeasurement(id: number) {
   revalidatePath('/admin');
 }
 
+export async function editMeasurement(formData: FormData) {
+  const cookieStore = await cookies();
+  const isAuthenticated = cookieStore.get('vito_auth')?.value === 'true';
+  if (!isAuthenticated) throw new Error("Non autorizzato");
+
+  const id = Number(formData.get('id'));
+  const date = formData.get('date') as string;
+  const height = formData.get('height') as string;
+  const circumference = formData.get('circumference') as string;
+
+  const sql = neon(process.env.DATABASE_URL!);
+  await sql`
+    UPDATE measurements 
+    SET date = ${date}, height_cm = ${height}, circumference_cm = ${circumference}
+    WHERE id = ${id}
+  `;
+
+  revalidatePath('/');
+  revalidatePath('/admin');
+}
+
 // --- FUNZIONE PER I DATI DEI GRAFICI ---
 
 export async function getMeasurements() {
@@ -88,6 +109,38 @@ export async function deleteImage(id: number) {
 
   const sql = neon(process.env.DATABASE_URL!);
   await sql`DELETE FROM tree_images WHERE id = ${id}`;
+
+  revalidatePath('/');
+  revalidatePath('/admin');
+}
+
+export async function editImage(formData: FormData) {
+  const cookieStore = await cookies();
+  if (cookieStore.get('vito_auth')?.value !== 'true') throw new Error("Non autorizzato");
+
+  const id = Number(formData.get('id'));
+  const caption = formData.get('caption') as string;
+  const description = formData.get('description') as string;
+  
+  const sql = neon(process.env.DATABASE_URL!);
+  
+  const file = formData.get('image') as File | null;
+  if (file && file.size > 0) {
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64Data = `data:${file.type};base64,${buffer.toString('base64')}`;
+    await sql`
+      UPDATE tree_images 
+      SET url = ${base64Data}, caption = ${caption}, description = ${description}
+      WHERE id = ${id}
+    `;
+  } else {
+    await sql`
+      UPDATE tree_images 
+      SET caption = ${caption}, description = ${description}
+      WHERE id = ${id}
+    `;
+  }
 
   revalidatePath('/');
   revalidatePath('/admin');

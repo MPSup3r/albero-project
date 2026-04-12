@@ -1,11 +1,13 @@
 import { neon } from '@neondatabase/serverless';
-import { addMeasurement, deleteMeasurement, deleteImage, getImages } from '../actions';
+import { addMeasurement, getImages } from '../actions';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
-// IMPORTIAMO IL NUOVO COMPONENTE CHE HAI CREATO
+// Componenti Client per i form di aggiunta e modifica
 import ImageUploadForm from './ImageUploadForm';
+import EditableMeasurementList from './EditableMeasurementList';
+import EditableImageList from './EditableImageList';
 
 // Funzione Server Action di Logout (Tua originale)
 async function handleLogout() {
@@ -86,21 +88,7 @@ export default async function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {measurements.length === 0 ? (
-                      <tr><td colSpan={3} className="py-6 text-center text-slate-400">Nessun dato.</td></tr>
-                    ) : (
-                      measurements.map((m) => (
-                        <tr key={m.id} className="border-b border-slate-100 hover:bg-slate-50">
-                          <td className="py-3 text-slate-700">{new Date(m.date).toLocaleDateString('it-IT')}</td>
-                          <td className="py-3 text-slate-700">{m.height_cm} cm</td>
-                          <td className="py-3 text-right">
-                            <form action={deleteMeasurement.bind(null, m.id)}>
-                              <button type="submit" className="text-red-500 hover:text-red-700 text-sm font-medium px-3 py-1 bg-red-50 rounded-lg transition-colors">Elimina</button>
-                            </form>
-                          </td>
-                        </tr>
-                      ))
-                    )}
+                    <EditableMeasurementList measurements={measurements} />
                   </tbody>
                 </table>
               </div>
@@ -123,22 +111,7 @@ export default async function AdminPage() {
           <div className="md:col-span-2">
             <div className="bg-white/80 backdrop-blur-2xl border border-white/80 shadow-lg rounded-3xl p-6 overflow-hidden">
               <h2 className="text-xl font-bold mb-4 text-emerald-800">Galleria Attuale</h2>
-              {images.length === 0 ? (
-                <p className="py-6 text-center text-slate-400">Nessuna foto caricata.</p>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {images.map((img: any) => (
-                    <div key={img.id} className="relative group rounded-2xl overflow-hidden border border-slate-200">
-                      <img src={img.url} alt={img.caption} className="w-full h-32 object-cover" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <form action={deleteImage.bind(null, img.id)}>
-                          <button type="submit" className="bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-bold">Elimina</button>
-                        </form>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <EditableImageList images={images} />
             </div>
           </div>
         </div>
