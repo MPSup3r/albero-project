@@ -7,6 +7,7 @@ import { OrbitControls, Environment } from "@react-three/drei";
 import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import { getImages, getMeasurements } from "./actions";
 import TreeChart from "@/components/TreeChart";
+import ArchitectureDiagram from "@/components/ArchitectureDiagram";
 
 type GalleryImage = {
   id: string | number;
@@ -297,12 +298,12 @@ const prevCarouselImage = () => {
             </motion.p>
           </div>
           
-          {/* Immagine Sintesi */}
+          {/* Immagine Sintesi / Architettura */}
           <motion.div 
             variants={popInItem}
-            className="w-full md:w-1/2 aspect-square md:aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-emerald-900/10 border-[4px] border-white bg-slate-100 relative group"
+            className="w-full md:w-1/2 aspect-square md:aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-emerald-900/10 border-[4px] border-white bg-slate-100 relative group flex"
           >
-             <img src="/Ecosistema.jpg" alt="Ecosistema" className="w-full h-full object-cover relative z-10 transition-transform duration-700 group-hover:scale-105" />
+             <ArchitectureDiagram />
           </motion.div>
         </div>
       </motion.section>
