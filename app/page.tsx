@@ -16,16 +16,51 @@ type GalleryImage = {
   description?: string;
 };
 
+// Modello 3D ispirato al Populus Alba:
+// - Tronco alto e sottile con corteccia bianco-grigia
+// - Chioma colonnare/ovale, stratificata
+// - Fogliame con sfumatura verde-argento (pagina superiore scura, inferiore bianca)
 function BasicTree() {
   return (
-    <group position={[0, -2.5, 0]}>
-      <mesh position={[0, 1, 0]}>
-        <cylinderGeometry args={[0.3, 0.4, 2, 16]} />
-        <meshStandardMaterial color="#6B4423" roughness={0.9} />
+    <group position={[0, -2.5, 0]} scale={[0.62, 0.62, 0.62]}>
+      {/* Tronco — corteccia bianco-grigia chiara tipica del Populus Alba */}
+      <mesh position={[0, 2.2, 0]}>
+        <cylinderGeometry args={[0.18, 0.28, 4.4, 20]} />
+        <meshStandardMaterial color="#D6D0C4" roughness={0.85} metalness={0.05} />
       </mesh>
-      <mesh position={[0, 3.5, 0]}>
-        <coneGeometry args={[1.5, 4, 16]} />
-        <meshStandardMaterial color="#3CB371" roughness={0.6} />
+
+      {/* Ramificazioni basse */}
+      <mesh position={[0.5, 3.8, 0]} rotation={[0, 0, 0.5]}>
+        <cylinderGeometry args={[0.05, 0.1, 1.2, 8]} />
+        <meshStandardMaterial color="#C8C2B5" roughness={0.9} />
+      </mesh>
+      <mesh position={[-0.5, 3.8, 0]} rotation={[0, 0, -0.5]}>
+        <cylinderGeometry args={[0.05, 0.1, 1.2, 8]} />
+        <meshStandardMaterial color="#C8C2B5" roughness={0.9} />
+      </mesh>
+
+      {/* Layer chioma inferiore — verde scuro (pagina superiore foglie) */}
+      <mesh position={[0, 5.2, 0]}>
+        <sphereGeometry args={[1.5, 14, 14]} />
+        <meshStandardMaterial color="#4A7C4E" roughness={0.75} />
+      </mesh>
+
+      {/* Layer chioma medio — verde medio */}
+      <mesh position={[0, 6.5, 0]}>
+        <sphereGeometry args={[1.2, 14, 14]} />
+        <meshStandardMaterial color="#5B9060" roughness={0.7} />
+      </mesh>
+
+      {/* Layer chioma superiore — verde-argento (pagina inferiore esposta al vento) */}
+      <mesh position={[0, 7.6, 0]}>
+        <sphereGeometry args={[0.85, 12, 12]} />
+        <meshStandardMaterial color="#8FB89A" roughness={0.6} metalness={0.08} />
+      </mesh>
+
+      {/* Punta sommitale argentata — caratteristica degli alti pioppi bianchi */}
+      <mesh position={[0, 8.5, 0]}>
+        <sphereGeometry args={[0.45, 10, 10]} />
+        <meshStandardMaterial color="#B8D4BE" roughness={0.55} metalness={0.12} />
       </mesh>
     </group>
   );
@@ -224,7 +259,7 @@ const prevCarouselImage = () => {
   };
 
   return (
-    <main className="min-h-[500vh] bg-[#FCFDFD] relative overflow-hidden font-sans text-slate-800">
+    <main className="min-h-[500vh] bg-[#EEF0ED] relative overflow-hidden font-sans text-slate-800">
       {/* Decals and environmental lighting for Solarpunk feel */}
       <div className="absolute top-0 left-0 w-full h-[150vh] bg-gradient-to-b from-emerald-50/50 to-transparent pointer-events-none z-0" />
       <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-emerald-100/30 rounded-full blur-[100px] pointer-events-none z-0" />
@@ -246,16 +281,6 @@ const prevCarouselImage = () => {
           >
             VIVO
           </motion.h1>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.8 }}
-          >
-            <p className="text-xl md:text-2xl font-medium text-emerald-600 tracking-widest uppercase">
-              Urban Thermal & Carbon Sink
-            </p>
-          </motion.div>
         </div>
       </header>
 
