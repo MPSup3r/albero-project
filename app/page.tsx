@@ -73,6 +73,7 @@ export default function Home() {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
   const [carouselInteraction, setCarouselInteraction] = useState(0);
+  const [carouselDirection, setCarouselDirection] = useState(1); // 1 = avanti, -1 = indietro
   const [measurements, setMeasurements] = useState<any[]>([]);
 
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -143,13 +144,15 @@ useEffect(() => {
 }, [images.length, carouselInteraction]);
 
 const nextCarouselImage = () => {
+  setCarouselDirection(1);
   setCurrentCarouselIndex((prev) => (prev + 1) % images.length);
-  setCarouselInteraction(prev => prev + 1); // Resetta il timer
+  setCarouselInteraction(prev => prev + 1);
 };
 
 const prevCarouselImage = () => {
+  setCarouselDirection(-1);
   setCurrentCarouselIndex((prev) => (prev - 1 + images.length) % images.length);
-  setCarouselInteraction(prev => prev + 1); // Resetta il timer
+  setCarouselInteraction(prev => prev + 1);
 };
 
   const handleOpenChat = () => {
@@ -489,21 +492,67 @@ const prevCarouselImage = () => {
              <div className="absolute inset-0 bg-[#d4cab3] rounded-[1.5rem] shadow-2xl transform translate-y-3 translate-x-1 border border-[#c4ba9e] -z-10 hidden md:block"></div>
              
              {/* Pagine del Libro */}
-             <div className="relative w-full bg-[#fdfbf6] rounded-xl sm:rounded-[1.5rem] shadow-[inset_0_0_60px_rgba(150,140,110,0.08)] border border-[#e6dfcc] overflow-hidden py-12 px-6 md:px-12 min-h-[600px] flex items-center justify-center">
+             <div
+               className="relative w-full bg-[#fdfbf6] rounded-xl sm:rounded-[1.5rem] shadow-[inset_0_0_60px_rgba(150,140,110,0.08)] border border-[#e6dfcc] overflow-hidden py-12 px-6 md:px-12 min-h-[600px] flex items-center justify-center"
+               style={{ perspective: '2000px' }}
+             >
                
                {/* Ombre e rilegatura centrale del libro aperto */}
                <div className="absolute inset-y-0 left-1/2 w-24 -translate-x-1/2 bg-gradient-to-r from-transparent via-[#ddd2b8]/50 to-transparent shadow-[inset_10px_0_20px_rgba(0,0,0,0.02)] hidden md:block pointer-events-none"></div>
                <div className="absolute inset-y-0 left-1/2 w-px bg-gradient-to-b from-transparent via-[#c6bc9c] to-transparent shadow-[-2px_0_5px_rgba(0,0,0,0.15)] hidden md:block pointer-events-none"></div>
 
-            <AnimatePresence mode="wait" initial={false}>
+            <AnimatePresence mode="wait" initial={false} custom={carouselDirection}>
               <motion.div
                 key={currentCarouselIndex}
-                initial={{ opacity: 0, scale: 0.98, rotateY: -10 }}
-                animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-                exit={{ opacity: 0, scale: 0.98, rotateY: 10 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="w-full flex flex-col md:flex-row items-stretch max-w-5xl mx-auto gap-8 md:gap-16 z-10"
+                custom={carouselDirection}
+                variants={{
+                  /*
+                   * FlipHTML5-style page fold:
+                   *  - EXIT: current page folds toward the spine (right edge for forward,
+                   *    left edge for backward) until it's 90° — edge-on and invisible
+                   *    (backfaceVisibility:hidden hides it at that point).
+                   *  - ENTER: new page unfolds from 90° (edge-on) back to flat 0°,
+                   *    revealing itself from the spine outward.
+                   * The two phases are sequential (mode="wait"), so you see the full
+                   * fold-in first, then the full unfold-out — exactly like FlipHTML5.
+                   */
+                  enter: (dir: number) => ({
+                    rotateY: dir > 0 ? 90 : -90,
+                    opacity: 1,
+                    transformOrigin: dir > 0 ? 'left center' : 'right center',
+                  }),
+                  center: {
+                    rotateY: 0,
+                    opacity: 1,
+                    transformOrigin: 'center center',
+                    transition: {
+                      rotateY: { duration: 0.45, ease: [0.25, 1, 0.5, 1] },
+                    },
+                  },
+                  exit: (dir: number) => ({
+                    rotateY: dir > 0 ? -90 : 90,
+                    opacity: 1,
+                    transformOrigin: dir > 0 ? 'right center' : 'left center',
+                    transition: {
+                      rotateY: { duration: 0.4, ease: [0.5, 0, 0.75, 0] },
+                    },
+                  }),
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                style={{ backfaceVisibility: 'hidden' }}
+                className="relative w-full flex flex-col md:flex-row items-stretch max-w-5xl mx-auto gap-8 md:gap-16 z-10"
               >
+                {/* Gradient shadow overlay — simulates paper curl depth */}
+                <motion.div
+                  className="absolute inset-0 pointer-events-none z-20 rounded-xl"
+                  variants={{
+                    enter: (dir: number) => ({ opacity: 0.5, background: dir > 0 ? 'linear-gradient(to right, rgba(0,0,0,0.18) 0%, transparent 40%)' : 'linear-gradient(to left, rgba(0,0,0,0.18) 0%, transparent 40%)' }),
+                    center: { opacity: 0, transition: { duration: 0.3, delay: 0.1 } },
+                    exit: (dir: number) => ({ opacity: 0.5, background: dir > 0 ? 'linear-gradient(to left, rgba(0,0,0,0.18) 0%, transparent 40%)' : 'linear-gradient(to right, rgba(0,0,0,0.18) 0%, transparent 40%)' }),
+                  }}
+                />
                 {/* Pagina Sinistra (Immagine) */}
                 <div className="w-full md:w-1/2 flex items-center justify-center md:pr-10 cursor-pointer" onClick={() => setSelectedImageIndex(currentCarouselIndex)}>
                   <div className="relative w-full max-w-sm aspect-square md:aspect-[4/5] bg-[#FBFAF7] p-4 shadow-[0_15px_30px_rgba(0,0,0,0.12)] transform -rotate-2 hover:rotate-0 transition-transform duration-500 border border-[#e4dcce]">
