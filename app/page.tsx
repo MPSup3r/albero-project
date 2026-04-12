@@ -8,6 +8,7 @@ import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion"
 import { getImages, getMeasurements } from "./actions";
 import TreeChart from "@/components/TreeChart";
 import ArchitectureDiagram from "@/components/ArchitectureDiagram";
+import Contributors from "@/components/Contributors";
 
 type GalleryImage = {
   id: string | number;
@@ -681,6 +682,9 @@ const prevCarouselImage = () => {
           ></iframe>
         </motion.div>
       </motion.section>
+
+      {/* Contributori */}
+      <Contributors />
 
       {/* Footer / Info Legali */}
       <motion.footer
