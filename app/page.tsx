@@ -5,8 +5,11 @@ import Link from "next/link";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
 import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
-import { getImages, getMeasurements } from "./actions";
-import TreeChart from "@/components/TreeChart";
+import { getImages, getMeasurements, getWeatherData } from "./actions";
+import dynamic from "next/dynamic";
+
+const TreeChart = dynamic(() => import("@/components/TreeChart"), { ssr: false });
+
 import ArchitectureDiagram from "@/components/ArchitectureDiagram";
 import Contributors from "@/components/Contributors";
 
@@ -76,6 +79,7 @@ export default function Home() {
   const [carouselInteraction, setCarouselInteraction] = useState(0);
   const [carouselDirection, setCarouselDirection] = useState(1); // 1 = avanti, -1 = indietro
   const [measurements, setMeasurements] = useState<any[]>([]);
+  const [weather, setWeather] = useState<any>(null);
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
@@ -120,6 +124,10 @@ export default function Home() {
 
   getMeasurements()
     .then((data) => setMeasurements(data))
+    .catch(console.error);
+
+  getWeatherData(45.428113, 9.179875)
+    .then((data) => setWeather(data))
     .catch(console.error);
 
   const intervalId = setInterval(() => {
@@ -634,28 +642,57 @@ const prevCarouselImage = () => {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="max-w-7xl mx-auto px-6 mb-40 relative z-10"
       >
-        <div className="flex flex-col md:flex-row items-end justify-between border-t border-emerald-100 pt-16">
-          <div className="mb-8 md:mb-0">
+        <div className="flex flex-col md:flex-row items-end justify-between border-t border-emerald-100 pt-16 gap-8">
+          <div className="mb-8 md:mb-0 w-full md:w-auto">
             <span className="font-mono text-emerald-500 text-xs tracking-widest uppercase mb-4 block">
               [ COORDINATE GEOGRAFICHE ]
             </span>
             <h2 className="text-4xl md:text-6xl font-semibold mb-6 text-emerald-950 tracking-tighter uppercase">
               Rilevamento Sito
             </h2>
-            <div className="flex items-center gap-4 text-emerald-700 font-medium text-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-emerald-700 font-medium text-xl">
               <span>Parco Ulisse Dini, Milano</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span className="hidden sm:block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
               <span className="font-mono tracking-widest text-slate-500">45.428113, 9.179875</span>
             </div>
+            
+            {/* Weather widget posizionato qui sotto o di fianco */}
+            {weather && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="mt-8 flex bg-white/70 backdrop-blur-xl border border-emerald-100 rounded-[1.5rem] p-5 gap-6 sm:gap-8 items-center shadow-[0_8px_30px_rgba(16,185,129,0.06)] w-fit"
+              >
+                <div className="flex flex-col">
+                  <span className="font-mono text-[10px] text-emerald-600 tracking-widest uppercase mb-1.5 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Meteo in Tempo Reale
+                  </span>
+                  <div className="flex items-end gap-2">
+                    <span className="text-4xl font-semibold text-emerald-950 leading-none">{weather.temperature}°C</span>
+                    <span className="text-sm font-medium text-slate-500 mb-1">Percepiti {weather.apparent_temperature}°</span>
+                  </div>
+                </div>
+                <div className="h-12 border-l border-emerald-100"></div>
+                <div className="flex flex-col">
+                  <span className="text-[12px] font-mono tracking-widest uppercase text-slate-500 mb-1.5 flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg>
+                    Umidità
+                  </span>
+                  <span className="text-2xl font-medium text-emerald-950">{weather.humidity}%</span>
+                </div>
+              </motion.div>
+            )}
           </div>
           
           <a 
             href="https://www.google.com/maps/place/45%C2%B025'41.2%22N+9%C2%B010'47.6%22E/@45.428113,9.179875,17z/data=!3m1!4b1!4m4!3m3!8m2!3d45.428113!4d9.179875?entry=ttu&g_ep=EgoyMDI2MDQwOC4wIKXMDSoASAFQAw%3D%3D"
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center justify-between gap-6 px-12 py-6 bg-emerald-500 hover:bg-emerald-600 text-white rounded-[1.5rem] shadow-lg shadow-emerald-500/20 transition-all duration-300 ease-[0.16,1,0.3,1]"
+            className="group shrink-0 flex items-center justify-between gap-6 px-10 py-5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-[1.5rem] shadow-lg shadow-emerald-500/20 transition-all duration-300 ease-[0.16,1,0.3,1]"
           >
-            <span className="font-bold tracking-widest uppercase">Visualizza Telemetria</span>
+            <span className="font-bold tracking-widest uppercase text-sm">Visualizza<br className="hidden sm:block"/> Telemetria</span>
             <svg className="w-6 h-6 transition-transform duration-300 group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>

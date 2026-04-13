@@ -145,3 +145,28 @@ export async function editImage(formData: FormData) {
   revalidatePath('/');
   revalidatePath('/admin');
 }
+
+export async function getWeatherData(latitude: number, longitude: number) {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code&timezone=auto`;
+    const res = await fetch(url, { headers: { 'User-Agent': 'VivoBot/1.0' }, next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const current = data.current || {};
+    
+    if (current.temperature_2m === undefined && current.relative_humidity_2m === undefined) {
+      return null;
+    }
+    
+    return {
+      temperature: current.temperature_2m,
+      humidity: current.relative_humidity_2m,
+      apparent_temperature: current.apparent_temperature,
+      time: current.time,
+      weather_code: current.weather_code
+    };
+  } catch (error) {
+    console.error("Error fetching weather data:", error);
+    return null;
+  }
+}
