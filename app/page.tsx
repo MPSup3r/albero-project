@@ -473,16 +473,27 @@ const prevCarouselImage = () => {
               // ATTESA DATI: MODULO TELEMETRIA NON AGGIORNATO //
             </p>
           )}
-          {measurements.length > 0 && (
-            <div className="mt-16 text-center w-full bg-emerald-50/50 rounded-2xl p-8 border border-emerald-100">
-              <h3 className="font-mono text-emerald-700 text-sm tracking-widest uppercase mb-4">/ Esito Analisi</h3>
-              <p className="text-lg text-slate-600 leading-relaxed max-w-3xl mx-auto">
-                Lo sviluppo vegetativo registra un incremento assiale pari al <strong className="text-emerald-800 font-semibold">25% dalla posa iniziale</strong>.
-                L&apos;associata espansione della circonferenza rileva un efficiente attecchimento radicale, validando i parametri 
-                funzionali del suolo ricevente.
-              </p>
-            </div>
-          )}
+          {measurements.length > 0 && (() => {
+            const firstHeight = measurements[0]?.height_cm;
+            const lastHeight = measurements[measurements.length - 1]?.height_cm;
+            let heightIncrease = 0;
+            if (typeof firstHeight === 'number' && typeof lastHeight === 'number' && firstHeight > 0) {
+               heightIncrease = Math.round(((lastHeight - firstHeight) / firstHeight) * 100);
+            }
+            const displayVal = Math.abs(heightIncrease);
+            const variationText = heightIncrease >= 0 ? "un incremento" : "una diminuzione";
+
+            return (
+              <div className="mt-16 text-center w-full bg-emerald-50/50 rounded-2xl p-8 border border-emerald-100">
+                <h3 className="font-mono text-emerald-700 text-sm tracking-widest uppercase mb-4">/ Esito Analisi</h3>
+                <p className="text-lg text-slate-600 leading-relaxed max-w-3xl mx-auto">
+                  Lo sviluppo vegetativo registra {variationText} assiale pari al <strong className="text-emerald-800 font-semibold">{displayVal}% dalla posa iniziale</strong>.
+                  L&apos;associata espansione della circonferenza rileva un efficiente attecchimento radicale, validando i parametri 
+                  funzionali del suolo ricevente.
+                </p>
+              </div>
+            );
+          })()}
         </motion.div>
       </motion.section>
 
