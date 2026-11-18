@@ -209,19 +209,50 @@ const prevCarouselImage = () => {
         },
         body: JSON.stringify({
           prompt: trimmedPrompt,
+          async_mode: true,
         }),
       });
 
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(`Errore HTTP ${res.status}`);
+        throw new Error(data.detail || `Errore HTTP ${res.status}`);
       }
 
-      const data = await res.json();
+      if (res.status === 202 && data.task_id) {
+        // New relay: receive a job ID instantly and poll without keeping
+        // the HTTP request open for the entire Bonsai generation.
+        let task = data;
+        const startTime = Date.now();
+        while (Date.now() - startTime < 28000) {
+          if (task.status === "done") {
+            setResponse(task.response || "Vivo non ha generato una risposta.");
+            setPrompt("");
+            return;
+          }
+          if (task.status === "error") {
+            throw new Error(task.error || "Generazione non riuscita");
+          }
+          if (task.status === "queued") {
+            setResponse(`In coda - posizione ${task.position ?? "?"}`);
+          } else {
+            setResponse("Vivo sta preparando la risposta...");
+          }
+          await new Promise<void>((resolve) => setTimeout(resolve, 650));
+          const poll = await fetch(`${BACKEND_URL}/${encodeURIComponent(data.task_id)}`, {
+            cache: "no-store",
+          });
+          task = await poll.json().catch(() => ({}));
+          if (!poll.ok) throw new Error(task.detail || `Polling HTTP ${poll.status}`);
+        }
+        throw new Error("Non sono riuscito a completare la risposta entro 30 secondi. Riprova.");
+      }
+
+      // Backward compatibility: original relay returns a direct response.
       setResponse(data.response || data.reply || "Nessuna risposta ricevuta.");
       setPrompt("");
     } catch (error) {
       console.error(error);
-      setResponse("Errore nel collegamento al server.");
+      setResponse(`Errore: ${error instanceof Error ? error.message : "server non disponibile"}`);
     } finally {
       setIsLoading(false);
     }
