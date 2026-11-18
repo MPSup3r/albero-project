@@ -93,7 +93,7 @@ export default function Home() {
   const LAUNCHER_INSET = "clamp(16px, 3vw, 32px)";
   const HINT_BUBBLE_GAP = "12px";
 
-  const BACKEND_URL = "https://treesitetorricellirelay.onrender.com/api/chat";
+  const BACKEND_URL = "https://treesite4binfo.onrender.com/api/chat";
 
   useEffect(() => {
   getImages()
